@@ -60,6 +60,7 @@ async function boot() {
     await initDb([...kernelMigrations, ...registry.migrations]);
     await useSettingsStore.getState().load();
     registerAppCommands();
+    void useChatStore.getState().init();
     ReactDOM.createRoot(root).render(
       <React.StrictMode>
         <App />

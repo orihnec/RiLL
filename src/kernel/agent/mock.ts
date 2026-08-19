@@ -164,7 +164,11 @@ export function parseIntent(text: string, base = new Date()): MockPlan {
 }
 
 /** 运行一次 mock 对话：流式模拟 + 真实执行注册表中的工具。 */
-export async function runMockChat(text: string, events: MockEvents): Promise<void> {
+export async function runMockChat(
+  text: string,
+  events: MockEvents,
+  isCancelled: () => boolean = () => false,
+): Promise<void> {
   const plan = parseIntent(text);
   const msgId = crypto.randomUUID();
   const toolViews: ToolCallView[] = plan.toolCalls.map((tc, i) => ({
@@ -175,9 +179,11 @@ export async function runMockChat(text: string, events: MockEvents): Promise<voi
   }));
 
   events.onStart(msgId, toolViews);
-  await streamText(plan.intro, (d) => events.onDelta(msgId, d));
+  await streamText(plan.intro, (d) => events.onDelta(msgId, d), isCancelled);
+  if (isCancelled()) return;
 
   for (let i = 0; i < plan.toolCalls.length; i++) {
+    if (isCancelled()) return;
     const tc = plan.toolCalls[i];
     const tv = toolViews[i];
     const tool = toolRegistry.get(tc.name);
@@ -189,12 +195,17 @@ export async function runMockChat(text: string, events: MockEvents): Promise<voi
     }
   }
 
-  await streamText(plan.outro, (d) => events.onDelta(msgId, d));
+  await streamText(plan.outro, (d) => events.onDelta(msgId, d), isCancelled);
   events.onDone(msgId);
 }
 
-async function streamText(full: string, onDelta: (d: string) => void): Promise<void> {
+async function streamText(
+  full: string,
+  onDelta: (d: string) => void,
+  isCancelled: () => boolean,
+): Promise<void> {
   for (let i = 0; i < full.length; i += 2) {
+    if (isCancelled()) return;
     onDelta(full.slice(i, i + 2));
     await sleep(20);
   }

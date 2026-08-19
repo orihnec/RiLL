@@ -1,5 +1,5 @@
 import { getDb } from "./db";
-import type { ChatMsg } from "./agent/types";
+import type { ChatMsg, ToolCallView } from "./agent/types";
 
 /** 会话消息落库（单会话 v1：固定 sessionId）。 */
 export async function saveChatMessage(msg: ChatMsg, sessionId = "default"): Promise<void> {
@@ -16,4 +16,27 @@ export async function saveChatMessage(msg: ChatMsg, sessionId = "default"): Prom
       Date.now(),
     ],
   );
+}
+
+/** 恢复最近会话（按写入顺序，rowid 兜底同毫秒排序）。 */
+export async function loadRecentChatMessages(
+  limit = 100,
+  sessionId = "default",
+): Promise<ChatMsg[]> {
+  const db = getDb();
+  const rows = await db.select<
+    { id: string; role: string; content: string | null; tool_calls_json: string | null }[]
+  >(
+    `SELECT id, role, content, tool_calls_json FROM chat_messages
+     WHERE session_id = $1
+     ORDER BY created_at ASC, rowid ASC
+     LIMIT $2`,
+    [sessionId, limit],
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    role: r.role === "user" ? "user" : "assistant",
+    content: r.content ?? "",
+    toolCalls: r.tool_calls_json ? (JSON.parse(r.tool_calls_json) as ToolCallView[]) : [],
+  }));
 }

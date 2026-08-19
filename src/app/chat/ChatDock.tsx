@@ -6,6 +6,7 @@ import {
   Loader2,
   Send,
   Sparkles,
+  Square,
   Trash2,
   X,
 } from "lucide-react";
@@ -52,6 +53,7 @@ export function ChatDock() {
   const status = useChatStore((s) => s.status);
   const error = useChatStore((s) => s.error);
   const send = useChatStore((s) => s.send);
+  const stop = useChatStore((s) => s.stop);
   const clear = useChatStore((s) => s.clear);
   const configured = useSettingsStore(
     (s) => s.llm.apiKeySet && s.llm.baseUrl.trim() !== "" && s.llm.chatModel.trim() !== "",
@@ -182,14 +184,24 @@ export function ChatDock() {
                 placeholder={configured ? "问点什么，或直接说安排日程…" : "演示：创建 / 查询 / 找空闲"}
                 className="max-h-32 min-h-10 flex-1 resize-none rounded-xl border border-white/10 bg-white/4 px-3 py-2 text-sm outline-none placeholder:text-muted-foreground/50 focus:border-indigo-400/40"
               />
-              <button
-                onClick={submit}
-                disabled={status === "streaming" || !input.trim()}
-                className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-indigo-500 text-white transition hover:bg-indigo-400 disabled:opacity-40"
-                title="发送"
-              >
-                <Send className="size-4" />
-              </button>
+              {status === "streaming" ? (
+                <button
+                  onClick={stop}
+                  title="停止"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-red-400/30 bg-red-500/15 text-red-300 transition hover:bg-red-500/25"
+                >
+                  <Square className="size-3.5" />
+                </button>
+              ) : (
+                <button
+                  onClick={submit}
+                  disabled={!input.trim()}
+                  className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-indigo-500 text-white transition hover:bg-indigo-400 disabled:opacity-40"
+                  title="发送"
+                >
+                  <Send className="size-4" />
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -114,45 +114,59 @@ export async function runRealChat(
   const system = await buildSystemPrompt();
   events.onStart(msgId, []);
 
-  const result = streamText({
-    model: getChatModel(),
-    system,
-    // history 已包含 send() 刚追加的用户消息
-    messages: toCoreMessages(history),
-    tools: toAiTools(),
-    // 默认 stopWhen 是 isStepCount(1)：必须显式放开才能自动续跑工具循环
-    stopWhen: isStepCount(8),
-  });
+  const abort = new AbortController();
+  currentAbort = abort;
+  try {
+    const result = streamText({
+      model: getChatModel(),
+      system,
+      // history 已包含 send() 刚追加的用户消息
+      messages: toCoreMessages(history),
+      tools: toAiTools(),
+      // 默认 stopWhen 是 isStepCount(1)：必须显式放开才能自动续跑工具循环
+      stopWhen: isStepCount(8),
+      abortSignal: abort.signal,
+    });
 
-  let content = "";
-  const toolViews = new Map<string, ToolCallView>();
+    let content = "";
+    const toolViews = new Map<string, ToolCallView>();
 
-  for await (const part of result.fullStream) {
-    if (part.type === "text-delta") {
-      content += part.text;
-      events.onDelta(msgId, part.text);
-    } else if (part.type === "tool-call") {
-      const tc = part as typeof part & { toolCallId: string; toolName: string; input?: unknown };
-      const tv: ToolCallView = {
-        id: tc.toolCallId,
-        name: tc.toolName,
-        args: (tc.input ?? {}) as Record<string, unknown>,
-        status: "running",
-      };
-      toolViews.set(tc.toolCallId, tv);
-      events.onTool(msgId, tv);
-    } else if (part.type === "tool-result") {
-      const tr = part as typeof part & { toolCallId: string; output?: unknown };
-      const prev = toolViews.get(tr.toolCallId);
-      if (prev) {
-        const next: ToolCallView = { ...prev, status: "done", result: fmtResult(tr.output) };
-        toolViews.set(tr.toolCallId, next);
-        events.onTool(msgId, next);
+    for await (const part of result.fullStream) {
+      if (part.type === "text-delta") {
+        content += part.text;
+        events.onDelta(msgId, part.text);
+      } else if (part.type === "tool-call") {
+        const tc = part as typeof part & { toolCallId: string; toolName: string; input?: unknown };
+        const tv: ToolCallView = {
+          id: tc.toolCallId,
+          name: tc.toolName,
+          args: (tc.input ?? {}) as Record<string, unknown>,
+          status: "running",
+        };
+        toolViews.set(tc.toolCallId, tv);
+        events.onTool(msgId, tv);
+      } else if (part.type === "tool-result") {
+        const tr = part as typeof part & { toolCallId: string; output?: unknown };
+        const prev = toolViews.get(tr.toolCallId);
+        if (prev) {
+          const next: ToolCallView = { ...prev, status: "done", result: fmtResult(tr.output) };
+          toolViews.set(tr.toolCallId, next);
+          events.onTool(msgId, next);
+        }
+      } else if (part.type === "error") {
+        console.error("[chat] stream part error", part.error);
       }
-    } else if (part.type === "error") {
-      console.error("[chat] stream part error", part.error);
     }
-  }
 
-  events.onDone(msgId);
+    events.onDone(msgId);
+  } finally {
+    currentAbort = null;
+  }
+}
+
+let currentAbort: AbortController | null = null;
+
+/** 中断当前真实 LLM 流（聊天面板"停止"按钮）。 */
+export function abortRealChat(): void {
+  currentAbort?.abort();
 }
