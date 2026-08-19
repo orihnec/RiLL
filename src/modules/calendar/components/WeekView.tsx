@@ -336,41 +336,73 @@ export function WeekView() {
               ))}
             </div>
 
-            {/* 事件层 */}
+            {/* 事件层（pointer-events-none：空白区域点击穿透到列的双击新建） */}
             {days.map((_, i) => (
               <div
                 key={i}
-                className="absolute bottom-0 top-0"
+                className="pointer-events-none absolute bottom-0 top-0"
                 style={{ left: `${(i / 7) * 100}%`, width: `${100 / 7}%` }}
               >
-                {placeEvents(byDay.buckets[i], dayMs[i]).map((p) => {
-                  const occ = p.occ;
-                  const isDraft = drag?.id === occ.id;
-                  const startAt = isDraft ? drag!.curStart : occ.startAt;
-                  const endAt = isDraft ? drag!.curEnd : occ.endAt;
-                  return (
+                {placeEvents(byDay.buckets[i], dayMs[i])
+                  .filter((p) => !drag || p.occ.id !== drag.id)
+                  .map((p) => {
+                    const occ = p.occ;
+                    return (
+                      <div
+                        key={occ.id}
+                        className="pointer-events-auto absolute px-0.5"
+                        style={{
+                          top: ((occ.startAt - dayMs[i]) / HOUR_MS) * HOUR_H,
+                          height: Math.max(((occ.endAt - occ.startAt) / HOUR_MS) * HOUR_H, 18),
+                          left: `${(p.lane / p.lanes) * 100}%`,
+                          width: `calc(${100 / p.lanes}% - 4px)`,
+                        }}
+                      >
+                        <EventCard
+                          occ={occ}
+                          onClick={() => openEdit(occ)}
+                          onPointerDown={(e) => startMove(e, occ)}
+                          onResizeStart={(e) => startResize(e, occ)}
+                        />
+                      </div>
+                    );
+                  })}
+              </div>
+            ))}
+
+            {/* 拖拽幽灵：渲染在 curStart 所在列，卡片跟随指针跨天 */}
+            {drag &&
+              (() => {
+                const d = drag;
+                const dayIdx = dayMs.findIndex(
+                  (s) => d.curStart >= s && d.curStart < s + DAY_MS,
+                );
+                if (dayIdx < 0) return null;
+                return (
+                  <div
+                    className="pointer-events-none absolute bottom-0 top-0 z-20"
+                    style={{ left: `${(dayIdx / 7) * 100}%`, width: `${100 / 7}%` }}
+                  >
                     <div
-                      key={occ.id}
                       className="absolute px-0.5"
                       style={{
-                        top: ((startAt - dayMs[i]) / HOUR_MS) * HOUR_H,
-                        height: Math.max(((endAt - startAt) / HOUR_MS) * HOUR_H, 18),
-                        left: `${(p.lane / p.lanes) * 100}%`,
-                        width: `calc(${100 / p.lanes}% - 4px)`,
+                        top: ((d.curStart - dayMs[dayIdx]) / HOUR_MS) * HOUR_H,
+                        height: Math.max(((d.curEnd - d.curStart) / HOUR_MS) * HOUR_H, 18),
+                        left: 0,
+                        right: 0,
                       }}
                     >
                       <EventCard
-                        occ={{ ...occ, startAt, endAt }}
-                        draft={isDraft}
-                        onClick={() => openEdit(occ)}
-                        onPointerDown={(e) => startMove(e, occ)}
-                        onResizeStart={(e) => startResize(e, occ)}
+                        occ={{ ...d.occ, startAt: d.curStart, endAt: d.curEnd }}
+                        draft
+                        onClick={() => {}}
+                        onPointerDown={() => {}}
+                        onResizeStart={() => {}}
                       />
                     </div>
-                  );
-                })}
-              </div>
-            ))}
+                  </div>
+                );
+              })()}
 
             {/* 当前时间线 */}
             {nowVisible && (

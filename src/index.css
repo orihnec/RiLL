@@ -5,6 +5,8 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
@@ -29,6 +31,8 @@
   --foreground: #e7e9ee;
   --card: rgba(255, 255, 255, 0.045);
   --card-foreground: #e7e9ee;
+  --popover: #171923;
+  --popover-foreground: #e7e9ee;
   --muted: rgba(255, 255, 255, 0.06);
   --muted-foreground: #8b93a5;
   --border: rgba(255, 255, 255, 0.09);
