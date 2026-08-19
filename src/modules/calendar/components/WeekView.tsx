@@ -94,9 +94,18 @@ export function WeekView() {
   const gridRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // 当前时间：10s 轮询 + 窗口聚焦/可见性变化时立即刷新
+  // （WebView2 对后台窗口定时器会节流，切回前台必须强制刷新）
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 30_000);
-    return () => clearInterval(t);
+    const refresh = () => setNow(new Date());
+    const t = setInterval(refresh, 10_000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, []);
 
   // 初始滚动到 7:00
@@ -404,7 +413,7 @@ export function WeekView() {
                 );
               })()}
 
-            {/* 当前时间线 */}
+            {/* 当前时间线：位置 = (now - 当天零点) / 小时毫秒 × HOUR_H，与刻度同坐标系 */}
             {nowVisible && (
               <div
                 className="pointer-events-none absolute inset-x-0 z-10"
@@ -412,6 +421,9 @@ export function WeekView() {
               >
                 <div className="relative h-px bg-rose-400/80">
                   <span className="absolute -left-1 -top-[3px] size-1.5 rounded-full bg-rose-400" />
+                  <span className="absolute left-2 -top-[26px] rounded-md bg-rose-500/90 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-white shadow-md">
+                    {format(now, "HH:mm")}
+                  </span>
                 </div>
               </div>
             )}
