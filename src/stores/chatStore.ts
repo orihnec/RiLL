@@ -101,14 +101,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const run = isLlmConfigured()
       ? runRealChat(events, get().messages)
       : runMockChat(trimmed, events, () => cancelToken.current);
+    console.log("[chat] send →", isLlmConfigured() ? "real" : "mock", "| text:", trimmed.slice(0, 40));
 
     void run.catch((e) => {
       const msg = String(e?.message ?? e);
+      console.error("[chat] run failed:", e);
       if (/abort/i.test(msg) || cancelToken.current) {
         set({ status: "idle" });
         return;
       }
-      console.error("[chat] run failed", e);
       set({ status: "idle", error: msg });
     });
   },

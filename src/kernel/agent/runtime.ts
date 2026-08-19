@@ -134,6 +134,7 @@ export async function runRealChat(
 
   const abort = new AbortController();
   currentAbort = abort;
+  console.log("[chat] runRealChat start, model =", useSettingsStore.getState().llm.chatModel);
   try {
     try {
       const result = streamText({
@@ -145,7 +146,9 @@ export async function runRealChat(
         // 默认 stopWhen 是 isStepCount(1)：必须显式放开才能自动续跑工具循环
         stopWhen: isStepCount(8),
         abortSignal: abort.signal,
+        timeout: 30_000,
       });
+      console.log("[chat] streamText created, consuming…");
 
       let content = "";
       const toolViews = new Map<string, ToolCallView>();
@@ -176,6 +179,7 @@ export async function runRealChat(
           console.error("[chat] stream part error", part.error);
         }
       }
+      console.log("[chat] stream consumed OK, text length =", content.length);
     } catch (e) {
       // 流式路径失败（传输层/供应商差异）：降级为一次性请求，工具照常执行
       console.warn("[chat] streaming failed, fallback to one-shot:", e);
@@ -185,6 +189,7 @@ export async function runRealChat(
         messages,
         tools,
         stopWhen: isStepCount(8),
+        timeout: 30_000,
       });
       const calls = ((res as unknown as { toolCalls?: { toolCallId: string; toolName: string; input?: unknown }[] }).toolCalls ?? []);
       const results = ((res as unknown as { toolResults?: { toolCallId: string; output?: unknown }[] }).toolResults ?? []);
