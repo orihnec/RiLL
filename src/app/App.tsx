@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   format,
   startOfMonth,
@@ -7,6 +7,7 @@ import {
   eachDayOfInterval,
   isSameMonth,
   isSameDay,
+  startOfDay,
 } from "date-fns";
 import { motion } from "framer-motion";
 import {
@@ -19,9 +20,11 @@ import {
 } from "lucide-react";
 import { useCalendarStore } from "../stores/calendarStore";
 import { CATEGORIES } from "../lib/colors";
-import { startOfWeek, weekDays } from "../lib/time";
+import { DAY_MS, startOfWeek, weekDays } from "../lib/time";
 import { cn } from "../lib/utils";
 import { WeekView } from "../modules/calendar/components/WeekView";
+import { MonthView } from "../modules/calendar/components/MonthView";
+import * as calendarService from "../modules/calendar/service";
 
 /* ---------------- TopBar ---------------- */
 
@@ -106,9 +109,31 @@ function TopBar() {
 function MiniMonth() {
   const { viewDate, setViewDate } = useCalendarStore();
   const today = new Date();
+  const [eventDays, setEventDays] = useState<number[]>([]);
   const gridStart = startOfWeek(startOfMonth(viewDate));
   const gridEnd = endOfWeek(endOfMonth(viewDate), { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
+
+  // 加载当月事件 → 有事件的日子显示圆点
+  useEffect(() => {
+    const start = startOfMonth(viewDate).getTime();
+    const end = endOfMonth(viewDate).getTime();
+    let cancelled = false;
+    void calendarService
+      .listOccurrences(start, end + DAY_MS)
+      .then((occs) => {
+        if (cancelled) return;
+        const set = new Set<number>();
+        for (const o of occs) set.add(startOfDay(o.startAt).getTime());
+        setEventDays([...set]);
+      })
+      .catch(() => !cancelled && setEventDays([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [viewDate]);
+
+  const eventSet = new Set(eventDays);
 
   return (
     <div className="glass rounded-2xl p-3">
@@ -126,7 +151,7 @@ function MiniMonth() {
             key={d.getTime()}
             onClick={() => setViewDate(d)}
             className={cn(
-              "rounded-md py-1 text-[11px] transition hover:bg-white/8",
+              "relative flex flex-col items-center rounded-md py-1 text-[11px] transition hover:bg-white/8",
               !isSameMonth(d, viewDate) && "text-muted-foreground/30",
               isSameDay(d, viewDate) &&
                 "bg-indigo-500/25 font-semibold text-indigo-200 ring-1 ring-indigo-400/40",
@@ -134,6 +159,9 @@ function MiniMonth() {
             )}
           >
             {format(d, "d")}
+            {eventSet.has(startOfDay(d).getTime()) && (
+              <span className="absolute bottom-0.5 size-1 rounded-full bg-indigo-400" />
+            )}
           </button>
         ))}
       </div>
@@ -177,18 +205,6 @@ function Sidebar() {
 
 /* ---------------- Main ---------------- */
 
-function MonthPlaceholder() {
-  return (
-    <div className="glass flex flex-1 flex-col items-center justify-center gap-3 rounded-3xl p-8 text-center">
-      <CalendarDays className="size-8 text-indigo-300/70" />
-      <div className="text-sm font-medium">月视图建设中（M1 · C3）</div>
-      <div className="max-w-md text-xs leading-relaxed text-muted-foreground/70">
-        完整月网格 + 事件块 + 点击编辑 + 拖拽换日 + 溢出 +N 弹层，将在 C3 落地。
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   const reload = useCalendarStore((s) => s.reload);
   const view = useCalendarStore((s) => s.view);
@@ -207,7 +223,7 @@ export default function App() {
           transition={{ type: "spring", stiffness: 200, damping: 24 }}
           className="flex min-h-0 flex-1 flex-col gap-4 p-4 pt-0"
         >
-          {view === "week" ? <WeekView /> : <MonthPlaceholder />}
+          {view === "week" ? <WeekView /> : <MonthView />}
         </motion.main>
       </div>
     </div>

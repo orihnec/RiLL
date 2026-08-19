@@ -89,6 +89,7 @@ export function WeekView() {
   });
   const [drag, setDrag] = useState<DragState | null>(null);
   const dragRef = useRef<DragState | null>(null);
+  const suppressClickRef = useRef(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -204,6 +205,7 @@ export function WeekView() {
       if (d && d.moved && (d.curStart !== d.origStart || d.curEnd !== d.origEnd)) {
         void updateEvent({ id: d.id }, { startAt: d.curStart, endAt: d.curEnd });
       }
+      suppressClickRef.current = !!d?.moved;
       dragRef.current = null;
       setDrag(null);
     };
@@ -227,7 +229,13 @@ export function WeekView() {
     });
   };
 
-  const openEdit = (occ: Occurrence) => setDialog({ open: true, mode: "edit", occ });
+  const openEdit = (occ: Occurrence) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    setDialog({ open: true, mode: "edit", occ });
+  };
 
   return (
     <div className="glass flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl">
