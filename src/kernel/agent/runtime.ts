@@ -60,15 +60,21 @@ export function toAiTools() {
   );
 }
 
-/** 历史消息 → ModelMessage[]（含工具调用与结果，供多轮对话上下文）。 */
-function toCoreMessages(msgs: ChatMsg[]): ModelMessage[] {
+/** DeepSeek thinking 模式要求历史 assistant 消息回传 reasoning_content（无则补空串）。 */
+function needsReasoningPassthrough(baseUrl: string): boolean {
+  return /deepseek/i.test(baseUrl);
+}
+
+/** 历史消息 → ModelMessage[]（含推理/工具调用与结果，供多轮对话上下文）。 */
+function toCoreMessages(msgs: ChatMsg[], baseUrl: string): ModelMessage[] {
   const out: ModelMessage[] = [];
   for (const m of msgs) {
     if (m.role === "user") {
       out.push({ role: "user", content: m.content });
       continue;
     }
-    const parts: { type: "text"; text: string }[] = [];
+    const parts: { type: string; text?: string }[] = [];
+    if (m.reasoning) parts.push({ type: "reasoning", text: m.reasoning });
     if (m.content) parts.push({ type: "text", text: m.content });
     for (const tc of m.toolCalls) {
       parts.push({
@@ -79,9 +85,17 @@ function toCoreMessages(msgs: ChatMsg[]): ModelMessage[] {
       } as never);
     }
     if (parts.length > 0) {
-      out.push({ role: "assistant", content: parts as never });
+      const msg: Record<string, unknown> = { role: "assistant", content: parts };
+      // DeepSeek thinking 模式：历史 assistant 消息必须带 reasoning_content（无则空串）。
+      // provider 对空 reasoning part 会省略该字段，故走消息级 providerOptions 透传
+      // （openaiCompatible 命名空间原样合并进消息 JSON，空串也会输出）。
+      if (needsReasoningPassthrough(baseUrl)) {
+        msg.providerOptions = { openaiCompatible: { reasoning_content: m.reasoning ?? "" } };
+      }
+      out.push(msg as never);
     }
     for (const tc of m.toolCalls) {
+      // v7 的 tool-result part 需要 output 对象（{type:'text'|'error-text', value}），不是裸字符串
       out.push({
         role: "tool",
         content: [
@@ -89,7 +103,10 @@ function toCoreMessages(msgs: ChatMsg[]): ModelMessage[] {
             type: "tool-result",
             toolCallId: tc.id,
             toolName: tc.name,
-            result: tc.result ?? "",
+            output:
+              tc.status === "error"
+                ? { type: "error-text", value: tc.result ?? "tool error" }
+                : { type: "text", value: tc.result ?? "" },
           },
         ] as never,
       });
@@ -111,6 +128,7 @@ function fmtResult(r: unknown): string {
 export interface ChatRunEvents {
   onStart: (msgId: string, toolCalls: ToolCallView[]) => void;
   onDelta: (msgId: string, delta: string) => void;
+  onReasoning: (msgId: string, delta: string) => void;
   onTool: (msgId: string, tc: ToolCallView) => void;
   onDone: (msgId: string) => void;
 }
@@ -129,7 +147,7 @@ export async function runRealChat(
   events.onStart(msgId, []);
 
   const model = getChatModel();
-  const messages = toCoreMessages(history);
+  const messages = toCoreMessages(history, useSettingsStore.getState().llm.baseUrl);
   const tools = toAiTools();
 
   const abort = new AbortController();
@@ -151,12 +169,16 @@ export async function runRealChat(
       console.log("[chat] streamText created, consuming…");
 
       let content = "";
+      let reasoning = "";
       const toolViews = new Map<string, ToolCallView>();
 
       for await (const part of result.fullStream) {
         if (part.type === "text-delta") {
           content += part.text;
           events.onDelta(msgId, part.text);
+        } else if (part.type === "reasoning-delta") {
+          reasoning += (part as { text?: string }).text ?? "";
+          events.onReasoning(msgId, (part as { text?: string }).text ?? "");
         } else if (part.type === "tool-call") {
           const tc = part as typeof part & { toolCallId: string; toolName: string; input?: unknown };
           const tv: ToolCallView = {
@@ -176,7 +198,8 @@ export async function runRealChat(
             events.onTool(msgId, next);
           }
         } else if (part.type === "error") {
-          console.error("[chat] stream part error", part.error);
+          // 错误 part 必须上抛，否则 UI 表现为"无错误也无反应"
+          throw part.error instanceof Error ? part.error : new Error(String(part.error));
         }
       }
       console.log("[chat] stream consumed OK, text length =", content.length);

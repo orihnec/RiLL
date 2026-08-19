@@ -65,7 +65,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         set((s) => ({
           messages: [
             ...s.messages,
-            { id: msgId, role: "assistant", content: "", toolCalls },
+            { id: msgId, role: "assistant", content: "", reasoning: "", toolCalls },
           ],
         }));
       },
@@ -73,6 +73,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
         set((s) => ({
           messages: s.messages.map((m) =>
             m.id === assistantId ? { ...m, content: m.content + delta } : m,
+          ),
+        }));
+      },
+      onReasoning: (_msgId: string, delta: string) => {
+        set((s) => ({
+          messages: s.messages.map((m) =>
+            m.id === assistantId ? { ...m, reasoning: (m.reasoning ?? "") + delta } : m,
           ),
         }));
       },

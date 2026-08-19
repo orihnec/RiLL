@@ -77,4 +77,59 @@ expect(parts2.filter((p) => p === "tool-call").length >= 1, "场景2 出现工�
 expect(parts2.includes("start-step") && parts2.lastIndexOf("start-step") > parts2.indexOf("tool-result"), "场景2 多步续跑（第二轮请求）");
 expect(t2.length > 0, "场景2 有最终文本");
 
+// —— 场景 3：带工具历史的多轮请求（复刻 App 历史回放，真 API 验证 schema） ——
+console.log(`\n== 场景3 历史回放（mock 风格历史，无 reasoning，真 API） ==`);
+// 模拟 App 的 toCoreMessages：DeepSeek 端点通过消息级 providerOptions 注入空 reasoning_content
+const history = [
+  { role: "user", content: "明天下午 3 点和老王开会 1 小时" },
+  {
+    role: "assistant",
+    providerOptions: { openaiCompatible: { reasoning_content: "" } },
+    content: [
+      { type: "text", text: "好的，我来帮你安排。" },
+      {
+        type: "tool-call",
+        toolCallId: "hist-1",
+        toolName: "calendar_createEvent",
+        input: { title: "和老王开会", start: "2026-08-22T15:00", end: "2026-08-22T16:00" },
+      },
+    ] as never,
+  },
+  {
+    role: "tool",
+    content: [
+      {
+        type: "tool-result",
+        toolCallId: "hist-1",
+        toolName: "calendar_createEvent",
+        output: { type: "text", value: "已创建事件" },
+      },
+    ] as never,
+  },
+] as never;
+// 拦截请求体，看 provider 如何序列化空 reasoning part
+const origFetch = globalThis.fetch;
+let captured = "";
+globalThis.fetch = (async (input: any, init?: any) => {
+  const body = String(init?.body ?? "");
+  if (body.includes("assistant")) captured = body.slice(0, 900);
+  return origFetch(input, init);
+}) as typeof fetch;
+const r3 = await streamText({
+  model,
+  system: "基于历史继续对话。",
+  messages: history,
+  stopWhen: isStepCount(4),
+});
+let t3 = "";
+let err3 = "";
+for await (const part of r3.fullStream) {
+  if (part.type === "text-delta") t3 += part.text;
+  if (part.type === "error") err3 = String(part.error);
+}
+console.log("回复:", t3);
+console.log("请求体 assistant 片段:", captured);
+expect(!err3, `场景3 无 error part（空 reasoning 兜底生效）${err3 ? "：" + err3.slice(0, 200) : ""}`);
+expect(t3.length > 0, "场景3 有文本输出");
+
 process.exit(ok ? 0 : 1);

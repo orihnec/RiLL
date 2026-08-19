@@ -120,4 +120,63 @@ expect(executed, "场景B 客户端工具已执行");
 expect(callCount === 2, `场景B 两轮请求（先工具后文本），实际 ${callCount}`);
 expect(textB === "工具已执行，一切正常", `场景B 最终文本：「${textB}」`);
 
+// —— 场景 C：带工具历史的多轮请求（历史回放 schema 校验，防 InvalidPrompt 回归） ——
+let sawErrorPart = false;
+let bodyHasTool = false;
+const mockFetchC = async (_url: unknown, init?: { body?: string }) => {
+  bodyHasTool = String(init?.body ?? "").includes('"role":"tool"');
+  return sseResponse([
+    { id: "c1", object: "chat.completion.chunk", created: 0, model: "mock", choices: [{ index: 0, delta: { role: "assistant", content: "历史已回放" }, finish_reason: null }] },
+    { id: "c1", object: "chat.completion.chunk", created: 0, model: "mock", choices: [{ index: 0, delta: {}, finish_reason: "stop" }] },
+  ]);
+};
+const providerC = createOpenAICompatible({
+  name: "mockC",
+  baseURL: "https://mock.local/v1",
+  apiKey: "k",
+  fetch: mockFetchC as never,
+});
+// 与 App 的 toCoreMessages 相同形状的历史（含 tool-call / tool-result + DeepSeek 风格 providerOptions 注入）
+const history = [
+  { role: "user", content: "帮我创建事件" },
+  {
+    role: "assistant",
+    providerOptions: { openaiCompatible: { reasoning_content: "" } },
+    content: [
+      { type: "text", text: "好的" },
+      { type: "tool-call", toolCallId: "c1", toolName: "echo_tool", input: {} },
+    ] as never,
+  },
+  {
+    role: "tool",
+    content: [
+      {
+        type: "tool-result",
+        toolCallId: "c1",
+        toolName: "echo_tool",
+        output: { type: "text", value: "执行成功" },
+      },
+    ] as never,
+  },
+] as never;
+const resultC = await streamText({
+  model: providerC.chatModel("mock-model") as never,
+  system: "测试历史回放",
+  messages: history,
+  tools: {
+    echo_tool: tool({ description: "测试", parameters: z.object({}) }),
+  },
+  stopWhen: isStepCount(4),
+});
+let textC = "";
+const partsC: string[] = [];
+for await (const part of resultC.fullStream) {
+  partsC.push(part.type);
+  if (part.type === "error") sawErrorPart = true;
+  if (part.type === "text-delta") textC += part.text;
+}
+expect(!sawErrorPart, `场景C 无 error part（历史 schema 校验通过），事件：${partsC.join("→")}`);
+expect(bodyHasTool, "场景C 请求体包含 tool 消息（历史正确回传）");
+expect(textC === "历史已回放", `场景C 文本：「${textC}」`);
+
 process.exit(ok ? 0 : 1);

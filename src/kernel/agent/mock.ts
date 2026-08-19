@@ -7,6 +7,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export interface MockEvents {
   onStart: (msgId: string, toolCalls: ToolCallView[]) => void;
   onDelta: (msgId: string, delta: string) => void;
+  onReasoning?: (msgId: string, delta: string) => void;
   onTool: (msgId: string, tc: ToolCallView) => void;
   onDone: (msgId: string) => void;
 }

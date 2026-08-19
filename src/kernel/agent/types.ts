@@ -28,5 +28,7 @@ export interface ChatMsg {
   id: string;
   role: "user" | "assistant";
   content: string;
+  /** 推理模型的思考过程（DeepSeek thinking 模式需原样回传） */
+  reasoning?: string;
   toolCalls: ToolCallView[];
 }
