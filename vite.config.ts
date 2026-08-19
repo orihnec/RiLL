@@ -16,6 +16,11 @@ export default defineConfig(async () => ({
     },
   },
 
+  // 桌面应用无网络加载成本，chunk 体积警告无实际意义
+  build: {
+    chunkSizeWarningLimit: 700,
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors

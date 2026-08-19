@@ -129,6 +129,8 @@ export function WeekView() {
     now.getTime() >= dayMs[todayIdx] &&
     now.getTime() < dayMs[todayIdx] + DAY_MS;
   const nowTop = ((now.getTime() - dayMs[todayIdx]) / HOUR_MS) * HOUR_H;
+  const isEmpty =
+    byDay.buckets.every((b) => b.length === 0) && byDay.allDay.every((b) => b.length === 0);
 
   /** 指针位置 → 日列索引 + 本地时间（ms），钳制在当天范围内。 */
   const timeAt = (clientX: number, clientY: number): { dayIdx: number; ms: number } => {
@@ -378,6 +380,15 @@ export function WeekView() {
               >
                 <div className="relative h-px bg-rose-400/80">
                   <span className="absolute -left-1 -top-[3px] size-1.5 rounded-full bg-rose-400" />
+                </div>
+              </div>
+            )}
+
+            {/* 空状态 */}
+            {isEmpty && (
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+                <div className="rounded-2xl border border-white/8 bg-black/35 px-4 py-2 text-xs text-muted-foreground/80 backdrop-blur">
+                  本周暂无日程 — 双击空白处创建（或按 Ctrl+N）
                 </div>
               </div>
             )}

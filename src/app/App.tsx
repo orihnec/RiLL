@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   format,
+  addMonths,
   startOfMonth,
   endOfMonth,
   endOfWeek,
@@ -16,6 +17,7 @@ import {
   ChevronRight,
   Command as CommandIcon,
   Library,
+  Settings,
   Sparkles,
 } from "lucide-react";
 import { useCalendarStore } from "../stores/calendarStore";
@@ -24,6 +26,8 @@ import { DAY_MS, startOfWeek, weekDays } from "../lib/time";
 import { cn } from "../lib/utils";
 import { WeekView } from "../modules/calendar/components/WeekView";
 import { MonthView } from "../modules/calendar/components/MonthView";
+import { EventDialog, type DialogState } from "../modules/calendar/components/EventDialog";
+import { SettingsDialog } from "./SettingsDialog";
 import * as calendarService from "../modules/calendar/service";
 
 /* ---------------- TopBar ---------------- */
@@ -138,7 +142,21 @@ function MiniMonth() {
   return (
     <div className="glass rounded-2xl p-3">
       <div className="mb-2 flex items-center justify-between px-1">
+        <button
+          onClick={() => setViewDate(addMonths(viewDate, -1))}
+          className="rounded-md p-1 text-muted-foreground transition hover:bg-white/8 hover:text-foreground"
+          aria-label="上一月"
+        >
+          <ChevronLeft className="size-3" />
+        </button>
         <span className="text-xs font-semibold">{format(viewDate, "yyyy年M月")}</span>
+        <button
+          onClick={() => setViewDate(addMonths(viewDate, 1))}
+          className="rounded-md p-1 text-muted-foreground transition hover:bg-white/8 hover:text-foreground"
+          aria-label="下一月"
+        >
+          <ChevronRight className="size-3" />
+        </button>
       </div>
       <div className="grid grid-cols-7 gap-0.5 text-center">
         {["一", "二", "三", "四", "五", "六", "日"].map((w) => (
@@ -169,7 +187,7 @@ function MiniMonth() {
   );
 }
 
-function Sidebar() {
+function Sidebar({ onOpenSettings }: { onOpenSettings: () => void }) {
   return (
     <aside className="flex w-60 shrink-0 flex-col gap-4 overflow-y-auto border-r border-white/6 p-4">
       <MiniMonth />
@@ -199,6 +217,13 @@ function Sidebar() {
         知识库
         <span className="ml-auto text-[10px] text-muted-foreground/50">M3</span>
       </button>
+      <button
+        onClick={onOpenSettings}
+        className="glass flex items-center gap-2 rounded-2xl p-3 text-left text-xs text-muted-foreground transition hover:text-foreground"
+      >
+        <Settings className="size-4" />
+        设置
+      </button>
     </aside>
   );
 }
@@ -208,13 +233,62 @@ function Sidebar() {
 export default function App() {
   const reload = useCalendarStore((s) => s.reload);
   const view = useCalendarStore((s) => s.view);
+  const setView = useCalendarStore((s) => s.setView);
+  const goToday = useCalendarStore((s) => s.goToday);
+  const createEvent = useCalendarStore((s) => s.createEvent);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [createDialog, setCreateDialog] = useState<DialogState>({
+    open: false,
+    mode: "create",
+  });
+
   useEffect(() => {
     void reload();
   }, [reload]);
 
+  // 应用内快捷键：Ctrl+N 新建 / Ctrl+1·2 视图 / Ctrl+T 今天 / Ctrl+, 设置
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const mod = navigator.userAgent.includes("Mac") ? e.metaKey : e.ctrlKey;
+      if (!mod) return;
+      switch (e.key.toLowerCase()) {
+        case "n":
+          e.preventDefault();
+          {
+            const start = Math.ceil(Date.now() / 1_800_000) * 1_800_000;
+            setCreateDialog({
+              open: true,
+              mode: "create",
+              defaultStart: start,
+              defaultEnd: start + 3_600_000,
+            });
+          }
+          break;
+        case "1":
+          e.preventDefault();
+          setView("week");
+          break;
+        case "2":
+          e.preventDefault();
+          setView("month");
+          break;
+        case "t":
+          e.preventDefault();
+          goToday();
+          break;
+        case ",":
+          e.preventDefault();
+          setSettingsOpen(true);
+          break;
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [setView, goToday]);
+
   return (
     <div className="flex h-full overflow-hidden">
-      <Sidebar />
+      <Sidebar onOpenSettings={() => setSettingsOpen(true)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
         <motion.main
@@ -226,6 +300,14 @@ export default function App() {
           {view === "week" ? <WeekView /> : <MonthView />}
         </motion.main>
       </div>
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <EventDialog
+        state={createDialog}
+        onClose={() => setCreateDialog((s) => ({ ...s, open: false }))}
+        onCreate={async (input) => {
+          await createEvent(input);
+        }}
+      />
     </div>
   );
 }

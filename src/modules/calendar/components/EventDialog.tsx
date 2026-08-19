@@ -44,8 +44,8 @@ interface Props {
   state: DialogState;
   onClose: () => void;
   onCreate: (input: NewEventInput) => Promise<void>;
-  onUpdate: (target: EventTarget, patch: EventPatch) => Promise<void>;
-  onDelete: (target: EventTarget) => Promise<void>;
+  onUpdate?: (target: EventTarget, patch: EventPatch) => Promise<void>;
+  onDelete?: (target: EventTarget) => Promise<void>;
 }
 
 const toDateInput = (ms: number) => format(new Date(ms), "yyyy-MM-dd");
@@ -157,7 +157,7 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
         };
         // 单实例例外不改 master 的重复规则
         if (editingSeries) patch.rrule = input.rrule;
-        await onUpdate(buildTarget(), patch);
+        await onUpdate?.(buildTarget(), patch);
       } else {
         await onCreate(buildInput());
       }
@@ -176,7 +176,7 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
     }
     setBusy(true);
     try {
-      await onDelete(buildTarget());
+      await onDelete?.(buildTarget());
       onClose();
     } catch (e) {
       setError(String(e));
@@ -342,7 +342,7 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
         </div>
 
         <DialogFooter>
-          {isEdit && (
+          {isEdit && onDelete && (
             <Button
               variant="ghost"
               className="mr-auto text-red-400 hover:bg-red-500/10 hover:text-red-300"
