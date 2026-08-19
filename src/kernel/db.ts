@@ -4,32 +4,52 @@ import { appDataDir, join } from "@tauri-apps/api/path";
 export interface Migration {
   id: string;
   sql: string;
+  /** 返回 true 时跳过执行（如 ALTER 类迁移的目标列已存在）；跳过也会记账。 */
+  skipIf?: (db: Database) => Promise<boolean>;
 }
 
 let db: Database | null = null;
 
 /**
  * 初始化数据库并执行迁移调度。
- * 迁移 = 按序应用、PRAGMA user_version 记账，幂等可重跑。
+ *
+ * 迁移寻址 = 稳定 id（schema_migrations 表记录已应用集合），而不是
+ * PRAGMA user_version 的数量对齐——数量机制在往迁移数组中间插入新迁移时
+ * 会让旧库跳过新迁移（历史教训：app_settings/chat_sessions 曾因此从未建表）。
+ * 除 ALTER 类迁移（用 skipIf 幂等）外，其余 SQL 均用 IF NOT EXISTS / OR IGNORE，
+ * 旧库首次启用记录机制时会全量重放，无害。
  */
 export async function initDb(migrations: Migration[]): Promise<Database> {
   const dir = await appDataDir();
   const file = await join(dir, "riliagent.db");
   const database = await Database.load(`sqlite:${file}`);
 
-  const rows = await database.select<{ user_version: number }[]>(
-    "PRAGMA user_version",
+  await database.execute(
+    "CREATE TABLE IF NOT EXISTS schema_migrations (id TEXT PRIMARY KEY, applied_at INTEGER NOT NULL)",
   );
-  let version = rows[0]?.user_version ?? 0;
+  const appliedRows = await database.select<{ id: string }[]>(
+    "SELECT id FROM schema_migrations",
+  );
+  const applied = new Set(appliedRows.map((r) => r.id));
 
-  for (let i = version; i < migrations.length; i++) {
-    const migration = migrations[i];
-    for (const statement of splitStatements(migration.sql)) {
-      await database.execute(statement);
+  for (const m of migrations) {
+    if (applied.has(m.id)) continue;
+    if (m.skipIf && (await m.skipIf(database))) {
+      console.info(`[db] skip migration ${m.id} (condition met)`);
+    } else {
+      for (const statement of splitStatements(m.sql)) {
+        await database.execute(statement);
+      }
     }
-    await database.execute(`PRAGMA user_version = ${i + 1}`);
-    console.info(`[db] applied migration ${migration.id} (v${i + 1})`);
+    await database.execute(
+      "INSERT INTO schema_migrations (id, applied_at) VALUES ($1, $2)",
+      [m.id, Date.now()],
+    );
+    console.info(`[db] applied migration ${m.id}`);
   }
+
+  // 兼容保留：供外部工具/诊断读取
+  await database.execute(`PRAGMA user_version = ${migrations.length}`);
 
   db = database;
   return database;
