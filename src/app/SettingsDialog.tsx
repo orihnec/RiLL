@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { appDataDir } from "@tauri-apps/api/path";
 import { getVersion } from "@tauri-apps/api/app";
-import { Check, Database, Info, Keyboard, KeyRound, X } from "lucide-react";
+import { Check, Database, Info, Keyboard, KeyRound, Loader2, RefreshCw, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSettingsStore } from "../stores/settingsStore";
+import { fetchAvailableModels } from "../kernel/agent/runtime";
+import { cn } from "../lib/utils";
 
 interface Props {
   open: boolean;
@@ -32,6 +34,9 @@ export function SettingsDialog({ open, onClose }: Props) {
   const [saved, setSaved] = useState(false);
   const [savingKey, setSavingKey] = useState(false);
   const [keyError, setKeyError] = useState<string | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [testError, setTestError] = useState<string | null>(null);
+  const [models, setModels] = useState<string[] | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -41,6 +46,8 @@ export function SettingsDialog({ open, onClose }: Props) {
     setApiKeyInput("");
     setSaved(false);
     setKeyError(null);
+    setTestError(null);
+    setModels(null);
     void appDataDir()
       .then((p) => setDbPath(p))
       .catch(() => setDbPath("未知"));
@@ -71,6 +78,26 @@ export function SettingsDialog({ open, onClose }: Props) {
       setKeyError(String(e));
     } finally {
       setSavingKey(false);
+    }
+  };
+
+  /** 测试连接并拉取模型列表（杜绝模型名填错）。 */
+  const testConnection = async () => {
+    if (!baseUrl.trim() || !llm.apiKeySet) {
+      setTestError("请先填写 Base URL 并保存 API Key");
+      return;
+    }
+    setTesting(true);
+    setTestError(null);
+    setModels(null);
+    try {
+      const list = await fetchAvailableModels(baseUrl.trim(), llm.apiKey);
+      setModels(list);
+      if (list.length === 1) setChatModel(list[0]);
+    } catch (e) {
+      setTestError(String(e instanceof Error ? e.message : e));
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -121,6 +148,36 @@ export function SettingsDialog({ open, onClose }: Props) {
                 placeholder="text-embedding-3-small"
               />
             </div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => void testConnection()} disabled={testing}>
+                {testing ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />}
+                {testing ? "连接中…" : "测试连接并获取模型"}
+              </Button>
+              {models && (
+                <span className="flex items-center gap-1 text-xs text-emerald-300">
+                  <Check className="size-3" /> 连接成功（{models.length} 个模型）
+                </span>
+              )}
+            </div>
+            {testError && <p className="text-xs text-red-400">{testError}</p>}
+            {models && models.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {models.map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setChatModel(m)}
+                    className={cn(
+                      "rounded-md border px-2 py-0.5 font-mono text-[11px] transition",
+                      chatModel === m
+                        ? "border-indigo-400/60 bg-indigo-400/15 text-indigo-200"
+                        : "border-white/10 bg-white/4 text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="flex items-end gap-2">
               <div className="flex flex-1 flex-col gap-1">
                 <Label className="text-xs">API Key</Label>

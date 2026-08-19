@@ -19,17 +19,30 @@ let cachedProvider: ReturnType<typeof createOpenAICompatible> | null = null;
 /** OpenAI 兼容 provider（fetch 走 tauri-plugin-http，绕开 webview CORS）。 */
 export function getChatModel() {
   const { baseUrl, chatModel, apiKey } = useSettingsStore.getState().llm;
-  const key = `${baseUrl}|${chatModel}|${apiKey ? "k" : ""}`;
+  const url = baseUrl.trim().replace(/\/+$/, "");
+  const key = `${url}|${chatModel}|${apiKey ? "k" : ""}`;
   if (!cachedProvider || cachedKey !== key) {
     cachedProvider = createOpenAICompatible({
       name: "riliagent",
-      baseURL: baseUrl,
+      baseURL: url,
       apiKey,
       fetch: tauriFetch,
     });
     cachedKey = key;
   }
   return cachedProvider.chatModel(chatModel);
+}
+
+/** 拉取供应商模型列表（设置页"测试连接并获取模型"用）。 */
+export async function fetchAvailableModels(baseUrl: string, apiKey: string): Promise<string[]> {
+  const res = await tauriFetch(`${baseUrl.trim().replace(/\/+$/, "")}/models`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}：${(await res.text()).slice(0, 200)}`);
+  }
+  const json = (await res.json()) as { data?: { id: string }[] };
+  return (json.data ?? []).map((m) => m.id);
 }
 
 /** 注册表中的工具 → AI SDK 工具定义（客户端执行 + 自动多步循环）。 */

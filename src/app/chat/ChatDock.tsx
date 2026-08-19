@@ -160,11 +160,21 @@ export function ChatDock() {
               </div>
             ))}
             {status === "streaming" &&
-              messages[messages.length - 1]?.role === "user" && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
-                  <Loader2 className="size-3 animate-spin" /> 思考中…
-                </div>
-              )}
+              (() => {
+                const last = messages[messages.length - 1];
+                const waitingAssistant = last?.role === "user";
+                // 推理模型（如 deepseek-v4-flash）先输出 reasoning、后输出文本：
+                // 空内容的 assistant 消息期间显示"思考中…"
+                const reasoning =
+                  last?.role === "assistant" &&
+                  last.content === "" &&
+                  last.toolCalls.length === 0;
+                return waitingAssistant || reasoning ? (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
+                    <Loader2 className="size-3 animate-spin" /> 思考中…
+                  </div>
+                ) : null;
+              })()}
             {error && <p className="text-xs text-red-400">{error}</p>}
           </div>
 
