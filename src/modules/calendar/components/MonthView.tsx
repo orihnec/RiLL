@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import {
   format,
@@ -264,21 +265,25 @@ export function MonthView() {
         </div>
       )}
 
-      {/* 拖拽幽灵 */}
-      {ghost && cat && (
-        <div
-          className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 rounded-md border border-white/20 px-2 py-1 text-[10px] font-medium shadow-xl"
-          style={{
-            left: ghost.x,
-            top: ghost.y,
-            background: `linear-gradient(135deg, ${cat.from}, ${cat.to})`,
-            color: cat.text,
-            borderLeft: `3px solid ${cat.bar}`,
-          }}
-        >
-          {ghost.title}
-        </div>
-      )}
+      {/* 拖拽幽灵：Portal 到 body——.glass 的 backdrop-filter 会创建包含块，
+          fixed 定位若留在面板内会相对面板偏移 */}
+      {ghost &&
+        cat &&
+        createPortal(
+          <div
+            className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 rounded-md border border-white/20 px-2 py-1 text-[10px] font-medium shadow-xl"
+            style={{
+              left: ghost.x,
+              top: ghost.y,
+              background: `linear-gradient(135deg, ${cat.from}, ${cat.to})`,
+              color: cat.text,
+              borderLeft: `3px solid ${cat.bar}`,
+            }}
+          >
+            {ghost.title}
+          </div>,
+          document.body,
+        )}
 
       <EventDialog
         state={dialog}
