@@ -153,9 +153,20 @@ export async function runRealChat(
   const abort = new AbortController();
   currentAbort = abort;
   console.log("[chat] runRealChat start, model =", useSettingsStore.getState().llm.chatModel);
+
+  // 看门狗：防传输层挂起导致状态永久 streaming（90s 后强制中止并报错）
+  let watchdogTimer: ReturnType<typeof setTimeout> | undefined;
+  const watchdog = new Promise<never>((_, reject) => {
+    watchdogTimer = setTimeout(() => {
+      abort.abort();
+      reject(new Error("请求超时（90 秒），已中止"));
+    }, 90_000);
+  });
+
   try {
-    try {
-      const result = streamText({
+    const consume = (async () => {
+      try {
+        const result = streamText({
         model,
         system,
         // history 已包含 send() 刚追加的用户消息
@@ -232,10 +243,14 @@ export async function runRealChat(
         });
       }
       if (res.text) events.onDelta(msgId, res.text);
-    }
-    events.onDone(msgId);
+        }
+      })();
+
+      await Promise.race([consume, watchdog]);
+      events.onDone(msgId);
   } finally {
-    currentAbort = null;
+      clearTimeout(watchdogTimer);
+      currentAbort = null;
   }
 }
 

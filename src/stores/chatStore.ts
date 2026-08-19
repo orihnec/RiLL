@@ -29,8 +29,8 @@ interface ChatState {
   setOpen: (open: boolean) => void;
   setView: (view: "chat" | "history") => void;
   setSearchQuery: (q: string) => void;
-  /** 启动：加载会话列表并恢复最近活跃会话 */
-  init: () => Promise<void>;
+  /** 启动：加载会话列表并恢复最近活跃会话，返回会话 id（失败返回 null） */
+  init: () => Promise<string | null>;
   /** 新建对话（当前对话消息已实时落库，无需迁移） */
   newChat: () => Promise<void>;
   /** 切换/加载历史会话 */
@@ -68,8 +68,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const messages = await loadSessionMessages(active.id, 200);
       const refreshed = await listSessions();
       set({ sessionId: active.id, sessions: refreshed, messages });
+      return active.id;
     } catch (e) {
-      console.warn("[chat] init failed", e);
+      console.error("[chat] init failed", e);
+      return null;
     }
   },
 
@@ -132,9 +134,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   send: (text) => {
     const trimmed = text.trim();
-    if (!trimmed || get().status === "streaming") return;
+    if (!trimmed) return;
+    if (get().status === "streaming") {
+      // 不静默丢弃：给出可见提示
+      set({ error: "上一条消息还在生成中，请等待完成或点击停止" });
+      return;
+    }
     const sessionId = get().sessionId;
-    if (!sessionId) return;
+    if (!sessionId) {
+      // 会话尚未就绪（启动竞态/init 失败）：先初始化，再继续发送
+      set({ error: "会话初始化中，请稍候…" });
+      void get().init().then(() => {
+        if (get().sessionId) get().send(trimmed);
+      });
+      return;
+    }
 
     cancelToken.current = false;
     const userMsg: ChatMsg = {

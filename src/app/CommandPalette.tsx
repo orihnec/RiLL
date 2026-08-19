@@ -31,6 +31,7 @@ export function CommandPalette() {
     if (!q) return;
     setOpen(false);
     chatSetOpen(true);
+    useChatStore.getState().setView("chat"); // 强制回到对话视图，避免发在历史视图看不到
     chatSend(q);
   };
 

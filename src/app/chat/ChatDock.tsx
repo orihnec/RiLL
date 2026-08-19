@@ -186,6 +186,7 @@ export function ChatDock() {
   const stop = useChatStore((s) => s.stop);
   const newChat = useChatStore((s) => s.newChat);
   const rollbackTo = useChatStore((s) => s.rollbackTo);
+  const init = useChatStore((s) => s.init);
   const configured = useSettingsStore(
     (s) => s.llm.apiKeySet && s.llm.baseUrl.trim() !== "" && s.llm.chatModel.trim() !== "",
   );
@@ -194,6 +195,11 @@ export function ChatDock() {
   const listRef = useRef<HTMLDivElement>(null);
 
   const currentTitle = sessions.find((s) => s.id === sessionId)?.title ?? "新对话";
+
+  // 会话未就绪时（启动竞态/init 失败）打开面板触发兜底初始化
+  useEffect(() => {
+    if (open && !sessionId) void init();
+  }, [open, sessionId, init]);
 
   useEffect(() => {
     const el = listRef.current;
