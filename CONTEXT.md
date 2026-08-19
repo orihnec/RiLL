@@ -60,7 +60,9 @@ src/lib/           # time.ts · colors.ts · utils.ts（cn）
 - **LLM 请求走 tauri-plugin-http**（fetch 注入 provider，绕 CORS）
 - calendar 5 工具（`modules/calendar/tools.ts`，zod schema + viaAgent 标记）；`service.findFreeSlots`
 - 右侧对话面板（ChatDock：流式 + 工具状态卡片 + mock/真实双路径，同渲染模型）；Cmd+K 命令栏（shadcn command + 注册表 + Rust 全局快捷键 `riliagent:cmd-k` 事件 + keydown 350ms 去重）
-- 无头验证：mock 意图 20 断言 ✓；LLM 运行时（mock fetch SSE）流式 + 工具自动循环 ✓
+- **多会话管理（后续增强）**：`chat_sessions` 表（kernel:3，含 default 存量收编）；当前对话/历史分离（面板双视图）；历史列表 + 关键词搜索（instr 子串，回忆之前内容）；切换/新建/删除会话；**消息级回退**（rollbackSession：保留到某条消息，删除其后 rowid 更大的记录）
+- **DeepSeek thinking 兼容（关键）**：推理内容存入 `chat_messages.reasoning`（kernel:2）；历史回传时经**消息级 `providerOptions.openaiCompatible.reasoning_content`** 注入（空串也透传；provider 对空 reasoning part 会省略字段导致 400）；stream 的 error part 必须上抛否则 UI"无反应"
+- 无头验证：mock 意图 20 断言 ✓；LLM 运行时（mock fetch SSE）流式 + 工具自动循环 + 历史回放 ✓；真 API 三场景（文本/工具/历史）✓；schema 6 文件 + rollback/search 冒烟 ✓
 
 ## 5. 技术地雷（踩过，勿重踩）
 
