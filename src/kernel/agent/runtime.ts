@@ -1,5 +1,5 @@
-import { streamText, tool } from "ai";
-import type { CoreMessage } from "ai";
+import { streamText, tool, isStepCount } from "ai";
+import type { ModelMessage } from "ai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { toolRegistry } from "./registry";
@@ -37,14 +37,19 @@ export function toAiTools() {
   return Object.fromEntries(
     toolRegistry.getAll().map((t) => [
       t.name,
-      tool({ description: t.description, parameters: t.parameters, execute: t.execute }),
+      tool({
+        description: t.description,
+        // 我们统一的 Tool 接口与 AI SDK 的 schema/execute 类型在边界处对齐
+        inputSchema: t.parameters as never,
+        execute: t.execute as never,
+      }),
     ]),
   );
 }
 
-/** 历史消息 → CoreMessage[]（含工具调用与结果，供多轮对话上下文）。 */
-function toCoreMessages(msgs: ChatMsg[]): CoreMessage[] {
-  const out: CoreMessage[] = [];
+/** 历史消息 → ModelMessage[]（含工具调用与结果，供多轮对话上下文）。 */
+function toCoreMessages(msgs: ChatMsg[]): ModelMessage[] {
+  const out: ModelMessage[] = [];
   for (const m of msgs) {
     if (m.role === "user") {
       out.push({ role: "user", content: m.content });
@@ -57,7 +62,7 @@ function toCoreMessages(msgs: ChatMsg[]): CoreMessage[] {
         type: "tool-call",
         toolCallId: tc.id,
         toolName: tc.name,
-        args: tc.args as Record<string, unknown>,
+        input: tc.args as Record<string, unknown>,
       } as never);
     }
     if (parts.length > 0) {
@@ -99,7 +104,7 @@ export interface ChatRunEvents {
 
 /**
  * 真实 LLM 路径：AI SDK streamText（纯客户端，浏览器运行时）
- * 自动多步工具循环（maxSteps），流式增量回传给 UI。
+ * 自动多步工具循环（stopWhen 放开步数上限），流式增量回传给 UI。
  */
 export async function runRealChat(
   events: ChatRunEvents,
@@ -110,13 +115,13 @@ export async function runRealChat(
   events.onStart(msgId, []);
 
   const result = streamText({
-    // openai-compatible 返回 LanguageModelV2，与当前 ai 版本类型对齐
-    model: getChatModel() as unknown as Parameters<typeof streamText>[0]["model"],
+    model: getChatModel(),
     system,
     // history 已包含 send() 刚追加的用户消息
     messages: toCoreMessages(history),
     tools: toAiTools(),
-    maxSteps: 8,
+    // 默认 stopWhen 是 isStepCount(1)：必须显式放开才能自动续跑工具循环
+    stopWhen: isStepCount(8),
   });
 
   let content = "";
@@ -124,22 +129,24 @@ export async function runRealChat(
 
   for await (const part of result.fullStream) {
     if (part.type === "text-delta") {
-      content += part.textDelta;
-      events.onDelta(msgId, part.textDelta);
+      content += part.text;
+      events.onDelta(msgId, part.text);
     } else if (part.type === "tool-call") {
+      const tc = part as typeof part & { toolCallId: string; toolName: string; input?: unknown };
       const tv: ToolCallView = {
-        id: part.toolCallId,
-        name: part.toolName,
-        args: (part.args ?? {}) as Record<string, unknown>,
+        id: tc.toolCallId,
+        name: tc.toolName,
+        args: (tc.input ?? {}) as Record<string, unknown>,
         status: "running",
       };
-      toolViews.set(part.toolCallId, tv);
+      toolViews.set(tc.toolCallId, tv);
       events.onTool(msgId, tv);
     } else if (part.type === "tool-result") {
-      const prev = toolViews.get(part.toolCallId);
+      const tr = part as typeof part & { toolCallId: string; output?: unknown };
+      const prev = toolViews.get(tr.toolCallId);
       if (prev) {
-        const next: ToolCallView = { ...prev, status: "done", result: fmtResult(part.result) };
-        toolViews.set(part.toolCallId, next);
+        const next: ToolCallView = { ...prev, status: "done", result: fmtResult(tr.output) };
+        toolViews.set(tr.toolCallId, next);
         events.onTool(msgId, next);
       }
     } else if (part.type === "error") {

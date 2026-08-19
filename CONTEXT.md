@@ -45,23 +45,22 @@ src/lib/           # time.ts · colors.ts · utils.ts（cn）
 
 铁律：① components 只渲染，数据来自 store；② 所有 SQL 只在模块 schema.sql 与迁移文件中；③ 新增 Agent 能力 = 在对应模块 tools.ts 加一个工具对象。
 
-## 4. 已完成（M1，全部验证 + 人工验收）
+## 4. 已完成（M1 验收通过 + M2 实现完成待验收）
 
-| 提交 | 内容 |
-|---|---|
-| `cda082e` | C0-C1 脚手架（Tauri2+React19+Vite7+Tailwind4+shadcn+Zustand+Framer Motion）+ 内核加载器 + SQLite 迁移调度（PRAGMA user_version） |
-| `c94d9bd` | C2 周视图：时间网格（56px/h）、当前时间线（10s 轮询 + focus 刷新 + HH:mm 徽标）、CRUD 对话框、拖拽改时间/跨天、resize、重叠分 lane、全天条 |
-| `61a1e4a` | C3 月视图：网格、事件芯片、拖拽换日（Portal 幽灵）、+N 弹层、MiniMonth 事件点 |
-| `bee88d4` | C4 RRULE 全套：展开引擎 + exdate/override 例外 + 系列作用域对话框 + 无头测试 |
-| `bf5802d` | C5 设置弹层骨架、快捷键（Ctrl+N/1/2/T/,）、空状态、release 打包冒烟（MSI+NSIS） |
-| `dbb5ef5` | fix: sql:allow-execute（sql:default 不含 execute） |
-| `1df6143` | fix: 双击穿透、跨天拖拽消失、popover/select 透明（补 --popover token） |
-| `d1ba3dc` | fix: 红线过期（节流）+ 时间徽标 |
-| `e6a627b` | fix: 月视图拖拽幽灵偏移（backdrop-filter 劫持 fixed → Portal） |
+### M1（验收通过）：9 个提交 `cda082e`→`e6a627b`（脚手架/周视图/月视图/RRULE/打磨/4 个修复）
 
-**验证命令**：`npm run build`（tsc+vite）· `cargo build`（src-tauri）· `node scripts/check-schema.mjs`（schema+FTS5）· `node scripts/check-rrule.mjs`（RRULE 16 断言，node:sqlite 镜像数据流）。
+**验证命令**：`npm run build`（tsc+vite）· `cargo build`（src-tauri）· `node scripts/check-schema.mjs`（schema+FTS5）· `node scripts/check-rrule.mjs`（RRULE 16 断言）· `npx tsx scripts/check-intent.ts`（mock 意图解析 20 断言）· `npx tsx scripts/check-llm.ts`（LLM 运行时，mock fetch 伪造 SSE：流式 + 工具循环两轮请求）。
 
 数据库：`%APPDATA%\com.riliagent.app\riliagent.db`（备份 = 复制文件）。release 产物在 `src-tauri/target/release/bundle/`。
+
+### M2（实现完成，待人工验收）：提交 `6868450`（后续版本对齐见 `git log`）
+
+- 设置页 LLM 配置持久化（`app_settings` 表，kernel:1 迁移）+ **API key 存系统钥匙串**（tauri-plugin-keyring，Windows 凭据管理器；JS: `tauri-plugin-keyring-api`，service/user 参数）
+- Agent 内核（`kernel/agent/`）：`runtime.ts`（streamText 纯客户端）+ `prompts.ts`（system prompt 组装）+ `mock.ts`（中文意图解析演示链路）+ `chat.ts`（chat_messages 落库）
+- **LLM 请求走 tauri-plugin-http**（fetch 注入 provider，绕 CORS）
+- calendar 5 工具（`modules/calendar/tools.ts`，zod schema + viaAgent 标记）；`service.findFreeSlots`
+- 右侧对话面板（ChatDock：流式 + 工具状态卡片 + mock/真实双路径，同渲染模型）；Cmd+K 命令栏（shadcn command + 注册表 + Rust 全局快捷键 `riliagent:cmd-k` 事件 + keydown 350ms 去重）
+- 无头验证：mock 意图 20 断言 ✓；LLM 运行时（mock fetch SSE）流式 + 工具自动循环 ✓
 
 ## 5. 技术地雷（踩过，勿重踩）
 
@@ -73,10 +72,14 @@ src/lib/           # time.ts · colors.ts · utils.ts（cn）
 6. **WebView2 后台定时器节流**：时间相关 UI 用 10s 轮询 + focus/visibilitychange 强制刷新。
 7. **node 下 rrule 是 CJS**：测试脚本用 default 导入（`import pkg from "rrule"`），浏览器端 Vite 无影响。
 8. **单实例定位**：重复事件实例无独立 id，地址 = `masterId + originalStart`；拖拽/编辑/删除都要带 `occurrenceStart` 才走 override/exdate 路径，否则整系列生效。
+9. **AI SDK 版本配对（重要）**：`ai@^7` + `@ai-sdk/openai-compatible@^1.0.48`（V2 模型）；**不能用 ai@4 + oc@1.0.48**（运行时抛 UnsupportedModelVersionError）。`@ai-sdk/react` 的 useChat 不提供纯客户端 model/tools 模式（v7 走服务端 transport）——本项目用 **`streamText` 纯客户端方案**。
+10. **streamText 工具循环续跑**：v7 默认 `stopWhen = isStepCount(1)`，工具调用后**不会自动续跑**——必须显式 `stopWhen: isStepCount(8)`。
+11. **v7 字段名**：`tool()` 的参数 schema 字段叫 `inputSchema`（不是 parameters）；fullStream part：text-delta 用 `.text`、tool-call 用 `.input`、tool-result 用 `.output`；历史消息类型是 `ModelMessage`（不是 CoreMessage）。
+12. **keyring 权限**：capabilities 需逐个 `keyring:allow-get-password / allow-set-password / allow-delete-password`（无 default 集）。
 
-## 6. 下一步：M2 — Agent + Cmd+K
+## 6. 下一步：M3 — RAG + 知识库（M2 验收通过后开工）
 
-**验收标准**：输入"明天下午 3 点和老王开会 1 小时" → 正确创建并显示。
+**M2 验收标准（待人工确认）**：输入"明天下午 3 点和老王开会 1 小时" → 正确创建并显示；改/删日程 Agent 先复述确认。
 
 | 步 | 内容 |
 |---|---|
