@@ -7,7 +7,14 @@
     "core:default",
     "sql:default",
     "sql:allow-execute",
-    "http:default",
+    {
+      "identifier": "http:default",
+      "description": "LLM 请求（OpenAI 兼容端点，含本地 Ollama http 端点）",
+      "allow": [
+        { "url": "https://*" },
+        { "url": "http://*" }
+      ]
+    },
     "global-shortcut:default",
     "keyring:allow-get-password",
     "keyring:allow-set-password",

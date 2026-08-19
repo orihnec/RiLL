@@ -76,6 +76,7 @@ src/lib/           # time.ts · colors.ts · utils.ts（cn）
 10. **streamText 工具循环续跑**：v7 默认 `stopWhen = isStepCount(1)`，工具调用后**不会自动续跑**——必须显式 `stopWhen: isStepCount(8)`。
 11. **v7 字段名**：`tool()` 的参数 schema 字段叫 `inputSchema`（不是 parameters）；fullStream part：text-delta 用 `.text`、tool-call 用 `.input`、tool-result 用 `.output`；历史消息类型是 `ModelMessage`（不是 CoreMessage）。
 12. **keyring 权限**：capabilities 需逐个 `keyring:allow-get-password / allow-set-password / allow-delete-password`（无 default 集）。
+13. **http 插件 URL 作用域（大坑）**：`http:default` 只放开 fetch 操作、**不放开任何 origin**——所有请求都会被"url not allowed on the configured scope"拦截。必须在 capabilities 里配作用域：`{ "identifier": "http:default", "allow": [{ "url": "https://*" }, { "url": "http://*" }] }`（URLPattern 语法，`https://*` 匹配任意 https 主机+路径；http 是为了本地 Ollama 类端点）。
 
 ## 6. 下一步：M3 — RAG + 知识库（M2 验收通过后开工）
 
