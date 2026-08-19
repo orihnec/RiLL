@@ -1,5 +1,6 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { format } from "date-fns";
+import { Repeat2 } from "lucide-react";
 import type { Occurrence } from "../service";
 import { categoryOf } from "../../../lib/colors";
 import { cn } from "../../../lib/utils";
@@ -38,10 +39,11 @@ export function EventCard({ occ, draft, onClick, onPointerDown, onResizeStart }:
       <span className="absolute inset-y-0 left-0 w-1" style={{ background: cat.bar }} />
       <div className="flex h-full flex-col justify-start gap-0.5 px-2 py-1 pl-2.5">
         <div
-          className={cn("truncate font-medium leading-tight", compact ? "text-[10px]" : "text-xs")}
+          className={cn("flex items-center gap-1", compact ? "text-[10px]" : "text-xs")}
           style={{ color: cat.text }}
         >
-          {occ.title}
+          {occ.rrule && <Repeat2 className="size-2.5 shrink-0 opacity-70" />}
+          <span className="truncate font-medium leading-tight">{occ.title}</span>
         </div>
         {!compact && (
           <div className="text-[10px] tabular-nums text-foreground/60">

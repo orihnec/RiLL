@@ -18,6 +18,7 @@ const GUTTER_W = 48; // 时间刻度栏宽度
 
 interface DragState {
   id: string;
+  occ: Occurrence;
   mode: "move" | "resize";
   grabOffsetMs: number;
   origStart: number;
@@ -151,6 +152,7 @@ export function WeekView() {
     const { ms } = timeAt(e.clientX, e.clientY);
     const d: DragState = {
       id: occ.id,
+      occ,
       mode: "move",
       grabOffsetMs: occ.startAt - ms,
       origStart: occ.startAt,
@@ -169,6 +171,7 @@ export function WeekView() {
     e.stopPropagation();
     const d: DragState = {
       id: occ.id,
+      occ,
       mode: "resize",
       grabOffsetMs: 0,
       origStart: occ.startAt,
@@ -203,7 +206,10 @@ export function WeekView() {
     const onUp = () => {
       const d = dragRef.current;
       if (d && d.moved && (d.curStart !== d.origStart || d.curEnd !== d.origEnd)) {
-        void updateEvent({ id: d.id }, { startAt: d.curStart, endAt: d.curEnd });
+        void updateEvent(
+          { id: d.id, occurrenceStart: d.occ.originalStart ?? null },
+          { startAt: d.curStart, endAt: d.curEnd },
+        );
       }
       suppressClickRef.current = !!d?.moved;
       dragRef.current = null;
@@ -391,14 +397,8 @@ export function WeekView() {
         onCreate={async (input) => {
           await createEvent(input);
         }}
-        onUpdate={async (patch) => {
-          const occ = dialog.occ!;
-          await updateEvent({ id: occ.masterId }, patch);
-        }}
-        onDelete={async () => {
-          const occ = dialog.occ!;
-          await deleteEvent({ id: occ.masterId });
-        }}
+        onUpdate={updateEvent}
+        onDelete={deleteEvent}
       />
     </div>
   );

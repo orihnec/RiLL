@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
+import { Repeat2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,13 @@ import {
 } from "@/components/ui/select";
 import { CATEGORIES, categoryOf } from "../../../lib/colors";
 import { toLocalInputValue, fromLocalInputValue } from "../../../lib/time";
-import type { EventPatch, NewEventInput, Occurrence } from "../service";
+import {
+  RECUR_OPTIONS,
+  rruleString,
+  freqOfRrule,
+  type RecurFreq,
+} from "../recurrence";
+import type { EventPatch, EventTarget, NewEventInput, Occurrence } from "../service";
 
 export interface DialogState {
   open: boolean;
@@ -31,20 +38,23 @@ export interface DialogState {
   defaultEnd?: number;
 }
 
+type Scope = "this" | "series";
+
 interface Props {
   state: DialogState;
   onClose: () => void;
   onCreate: (input: NewEventInput) => Promise<void>;
-  onUpdate: (patch: EventPatch) => Promise<void>;
-  onDelete: () => Promise<void>;
+  onUpdate: (target: EventTarget, patch: EventPatch) => Promise<void>;
+  onDelete: (target: EventTarget) => Promise<void>;
 }
 
 const toDateInput = (ms: number) => format(new Date(ms), "yyyy-MM-dd");
 
-/** 新建/编辑事件对话框（双击空白新建，点击事件编辑）。 */
+/** 新建/编辑事件对话框：支持重复频率与单实例/系列作用域。 */
 export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Props) {
   const occ = state.occ;
   const isEdit = state.mode === "edit";
+  const isOccurrence = !!occ?.isOccurrence;
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("default");
@@ -54,6 +64,8 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [repeat, setRepeat] = useState<RecurFreq>("none");
+  const [scope, setScope] = useState<Scope>("this");
   const [confirmDel, setConfirmDel] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +84,8 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
       setStartDate(toDateInput(occ.startAt));
       setEndDate(toDateInput(occ.endAt));
       setNotes(occ.notes ?? "");
+      setRepeat(freqOfRrule(occ.rrule));
+      setScope(occ.isOccurrence ? "this" : "series");
     } else {
       const s = state.defaultStart ?? Date.now();
       const e = state.defaultEnd ?? s + 3_600_000;
@@ -83,11 +97,15 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
       setStartDate(toDateInput(s));
       setEndDate(toDateInput(e));
       setNotes("");
+      setRepeat("none");
+      setScope("this");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.open, state.mode, occ?.id]);
 
   if (!state.open) return null;
+
+  const editingSeries = !isOccurrence || scope === "series";
 
   const buildInput = (): NewEventInput => {
     let start: number;
@@ -101,7 +119,22 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
       end = fromLocalInputValue(endInput);
       if (end <= start) end = start + 3_600_000;
     }
-    return { title: title.trim(), startAt: start, endAt: end, allDay, category, notes: notes.trim() || null };
+    return {
+      title: title.trim(),
+      startAt: start,
+      endAt: end,
+      allDay,
+      category,
+      notes: notes.trim() || null,
+      rrule: rruleString(editingSeries ? repeat : "none"),
+    };
+  };
+
+  const buildTarget = (): EventTarget => {
+    if (isOccurrence && scope === "this") {
+      return { id: occ!.masterId, occurrenceStart: occ!.originalStart };
+    }
+    return { id: occ!.masterId };
   };
 
   const save = async () => {
@@ -114,14 +147,17 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
     try {
       if (isEdit && occ) {
         const input = buildInput();
-        await onUpdate({
+        const patch: EventPatch = {
           title: input.title,
           startAt: input.startAt,
           endAt: input.endAt,
           allDay: input.allDay,
           category: input.category,
           notes: input.notes,
-        });
+        };
+        // 单实例例外不改 master 的重复规则
+        if (editingSeries) patch.rrule = input.rrule;
+        await onUpdate(buildTarget(), patch);
       } else {
         await onCreate(buildInput());
       }
@@ -140,7 +176,7 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
     }
     setBusy(true);
     try {
-      await onDelete();
+      await onDelete(buildTarget());
       onClose();
     } catch (e) {
       setError(String(e));
@@ -150,12 +186,24 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
   };
 
   const cat = categoryOf(category);
+  const deleteLabel = !isOccurrence
+    ? "删除"
+    : scope === "this"
+      ? "删除此事件"
+      : "删除整个系列";
 
   return (
     <Dialog open={state.open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "编辑事件" : "新建事件"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "编辑事件" : "新建事件"}
+            {isOccurrence && (
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2 py-0.5 text-[10px] font-medium text-indigo-300">
+                <Repeat2 className="size-2.5" /> 重复
+              </span>
+            )}
+          </DialogTitle>
           <DialogDescription className="sr-only">事件详情</DialogDescription>
         </DialogHeader>
 
@@ -193,6 +241,39 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
               </SelectContent>
             </Select>
           </div>
+
+          {isOccurrence && (
+            <div className="flex flex-col gap-1.5">
+              <Label>修改范围</Label>
+              <Select value={scope} onValueChange={(v) => setScope(v as Scope)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="this">仅此一次</SelectItem>
+                  <SelectItem value="series">整个系列</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {editingSeries && (
+            <div className="flex flex-col gap-1.5">
+              <Label>重复</Label>
+              <Select value={repeat} onValueChange={(v) => setRepeat(v as RecurFreq)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {RECUR_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="flex items-center gap-2">
             <input
@@ -262,8 +343,13 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
 
         <DialogFooter>
           {isEdit && (
-            <Button variant="ghost" className="mr-auto text-red-400 hover:bg-red-500/10 hover:text-red-300" onClick={() => void remove()} disabled={busy}>
-              {confirmDel ? "确认删除？" : "删除"}
+            <Button
+              variant="ghost"
+              className="mr-auto text-red-400 hover:bg-red-500/10 hover:text-red-300"
+              onClick={() => void remove()}
+              disabled={busy}
+            >
+              {confirmDel ? "确认删除？" : deleteLabel}
             </Button>
           )}
           <Button variant="ghost" onClick={onClose} disabled={busy}>

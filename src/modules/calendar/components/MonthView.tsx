@@ -12,6 +12,7 @@ import {
   eachDayOfInterval,
 } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Repeat2 } from "lucide-react";
 import { useCalendarStore } from "../../../stores/calendarStore";
 import { DAY_MS } from "../../../lib/time";
 import { categoryOf } from "../../../lib/colors";
@@ -117,7 +118,7 @@ export function MonthView() {
       if (d && d.moved && d.toIdx !== d.fromIdx) {
         const shift = (d.toIdx - d.fromIdx) * DAY_MS;
         void updateEvent(
-          { id: d.id },
+          { id: d.id, occurrenceStart: d.occ.originalStart ?? null },
           { startAt: d.occ.startAt + shift, endAt: d.occ.endAt + shift },
         );
       }
@@ -210,14 +211,15 @@ export function MonthView() {
                     onPointerDown={(e) => startChipDrag(e, occ, idx)}
                     onClick={() => openEdit(occ)}
                     title={occ.title}
-                    className="truncate rounded-md border border-white/10 px-1.5 py-0.5 text-left text-[10px] font-medium transition hover:brightness-125"
+                    className="flex items-center gap-1 truncate rounded-md border border-white/10 px-1.5 py-0.5 text-left text-[10px] font-medium transition hover:brightness-125"
                     style={{
                       background: `linear-gradient(135deg, ${c.from}, ${c.to})`,
                       color: c.text,
                       borderLeft: `2px solid ${c.bar}`,
                     }}
                   >
-                    {occ.title}
+                    {occ.rrule && <Repeat2 className="size-2.5 shrink-0 opacity-70" />}
+                    <span className="truncate">{occ.title}</span>
                   </button>
                 );
               })}
@@ -284,14 +286,8 @@ export function MonthView() {
         onCreate={async (input) => {
           await createEvent(input);
         }}
-        onUpdate={async (patch) => {
-          const occ = dialog.occ!;
-          await updateEvent({ id: occ.masterId }, patch);
-        }}
-        onDelete={async () => {
-          const occ = dialog.occ!;
-          await deleteEvent({ id: occ.masterId });
-        }}
+        onUpdate={updateEvent}
+        onDelete={deleteEvent}
       />
     </div>
   );
