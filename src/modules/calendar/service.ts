@@ -1,5 +1,6 @@
 import { RRule, type Options as RRuleOptions, type Weekday } from "rrule";
 import { getDb } from "../../kernel/db";
+import { DAY_MS, startOfToday } from "../../lib/time";
 
 /** events 表行。 */
 export interface EventRow {
@@ -515,4 +516,50 @@ export async function deleteEvent(target: EventTarget): Promise<void> {
     "UPDATE events SET deleted_at = $2, updated_at = $2 WHERE id = $1 AND deleted_at IS NULL",
     [target.id, Date.now()],
   );
+}
+
+/* ---------------- 空闲时段 ---------------- */
+
+export interface FreeSlotOptions {
+  durationMinutes: number;
+  start?: number;
+  end?: number;
+  /** 每日可预约窗口（默认 8:00–22:00） */
+  dayStartHour?: number;
+  dayEndHour?: number;
+  limit?: number;
+}
+
+export interface FreeSlot {
+  startAt: number;
+  endAt: number;
+}
+
+/** 找空闲：按 30 分钟步进扫描 [start, end)，跳过占用区间与窗口外时段。 */
+export async function findFreeSlots(opts: FreeSlotOptions): Promise<FreeSlot[]> {
+  const duration = Math.round(opts.durationMinutes) * 60_000;
+  const start = opts.start ?? startOfToday();
+  const end = opts.end ?? start + 7 * DAY_MS;
+  const dayStartHour = opts.dayStartHour ?? 8;
+  const dayEndHour = opts.dayEndHour ?? 22;
+  const limit = opts.limit ?? 5;
+  const HOUR_MS = 3_600_000;
+
+  const occs = await listOccurrences(start, end);
+  const busy = occs
+    .map((o) => [o.startAt, o.endAt] as const)
+    .sort((a, b) => a[0] - b[0]);
+
+  const STEP = 30 * 60_000;
+  const slots: FreeSlot[] = [];
+  for (let t = start; t + duration <= end && slots.length < limit; t += STEP) {
+    const d = new Date(t);
+    if (d.getHours() < dayStartHour) continue;
+    const dayStart = new Date(d);
+    dayStart.setHours(0, 0, 0, 0);
+    if ((t + duration - dayStart.getTime()) / HOUR_MS > dayEndHour) continue;
+    if (busy.some(([bs, be]) => t < be && t + duration > bs)) continue;
+    slots.push({ startAt: t, endAt: t + duration });
+  }
+  return slots;
 }

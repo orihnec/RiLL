@@ -10,12 +10,18 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "^1.0.48",
+    "@ai-sdk/react": "^1.2.12",
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-global-shortcut": "^2.3.2",
+    "@tauri-apps/plugin-http": "^2.5.9",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-sql": "^2.4.0",
     "@types/node": "^26.2.0",
+    "ai": "^4.3.19",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "date-fns": "^4.4.0",
     "framer-motion": "^13.1.0",
     "lucide-react": "^1.33.0",
@@ -24,6 +30,8 @@
     "react-dom": "^19.1.0",
     "rrule": "^2.8.1",
     "tailwind-merge": "^3.6.0",
+    "tauri-plugin-keyring-api": "^0.1.1",
+    "zod": "^3.25.76",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

@@ -17,23 +17,31 @@ import {
   ChevronRight,
   Command as CommandIcon,
   Library,
+  MessageSquare,
   Settings,
   Sparkles,
 } from "lucide-react";
+import { listen } from "@tauri-apps/api/event";
 import { useCalendarStore } from "../stores/calendarStore";
+import { useChatStore } from "../stores/chatStore";
+import { useUiStore } from "../stores/uiStore";
 import { CATEGORIES } from "../lib/colors";
 import { DAY_MS, startOfWeek, weekDays } from "../lib/time";
 import { cn } from "../lib/utils";
 import { WeekView } from "../modules/calendar/components/WeekView";
 import { MonthView } from "../modules/calendar/components/MonthView";
-import { EventDialog, type DialogState } from "../modules/calendar/components/EventDialog";
+import { EventDialog } from "../modules/calendar/components/EventDialog";
 import { SettingsDialog } from "./SettingsDialog";
+import { CommandPalette } from "./CommandPalette";
+import { ChatDock } from "./chat/ChatDock";
 import * as calendarService from "../modules/calendar/service";
 
 /* ---------------- TopBar ---------------- */
 
 function TopBar() {
   const { view, viewDate, setView, goPrev, goNext, goToday } = useCalendarStore();
+  const chatOpen = useChatStore((s) => s.open);
+  const chatSetOpen = useChatStore((s) => s.setOpen);
   const weekStart = startOfWeek(viewDate);
   const label =
     view === "week"
@@ -96,13 +104,25 @@ function TopBar() {
       </div>
 
       <button
-        disabled
-        title="Cmd+K 命令栏（M2）"
-        className="flex items-center gap-1.5 rounded-xl border border-white/8 bg-white/4 px-3 py-1.5 text-xs text-muted-foreground"
+        onClick={() => chatSetOpen(!chatOpen)}
+        title="AI 助手"
+        className={cn(
+          "flex size-8 items-center justify-center rounded-xl border transition",
+          chatOpen
+            ? "border-indigo-400/40 bg-indigo-400/15 text-indigo-200"
+            : "border-white/8 bg-white/4 text-muted-foreground hover:text-foreground",
+        )}
+      >
+        <MessageSquare className="size-4" />
+      </button>
+
+      <button
+        onClick={() => useUiStore.getState().setPaletteOpen(true)}
+        title="命令栏 / AI（Ctrl+K）"
+        className="flex items-center gap-1.5 rounded-xl border border-white/8 bg-white/4 px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground"
       >
         <CommandIcon className="size-3.5" />
-        <span>Cmd+K</span>
-        <span className="text-[10px] text-muted-foreground/60">M2</span>
+        <span className="hidden lg:inline">Ctrl+K</span>
       </button>
     </header>
   );
@@ -228,7 +248,7 @@ function Sidebar({ onOpenSettings }: { onOpenSettings: () => void }) {
   );
 }
 
-/* ---------------- Main ---------------- */
+/* ---------------- App ---------------- */
 
 export default function App() {
   const reload = useCalendarStore((s) => s.reload);
@@ -236,33 +256,33 @@ export default function App() {
   const setView = useCalendarStore((s) => s.setView);
   const goToday = useCalendarStore((s) => s.goToday);
   const createEvent = useCalendarStore((s) => s.createEvent);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [createDialog, setCreateDialog] = useState<DialogState>({
-    open: false,
-    mode: "create",
-  });
+  const { settingsOpen, setSettingsOpen, createDialog, closeCreateDialog } = useUiStore();
 
   useEffect(() => {
     void reload();
   }, [reload]);
 
-  // 应用内快捷键：Ctrl+N 新建 / Ctrl+1·2 视图 / Ctrl+T 今天 / Ctrl+, 设置
+  // 快捷键：Ctrl+K 命令栏（与全局快捷键双触发去重）、Ctrl+N 新建、Ctrl+1/2 视图、Ctrl+T 今天、Ctrl+, 设置
   useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let lastToggle = 0;
+    const togglePalette = () => {
+      const now = Date.now();
+      if (now - lastToggle < 350) return; // 全局快捷键与 keydown 双触发去重
+      lastToggle = now;
+      useUiStore.getState().setPaletteOpen(!useUiStore.getState().paletteOpen);
+    };
     const onKey = (e: KeyboardEvent) => {
       const mod = navigator.userAgent.includes("Mac") ? e.metaKey : e.ctrlKey;
       if (!mod) return;
       switch (e.key.toLowerCase()) {
+        case "k":
+          e.preventDefault();
+          togglePalette();
+          break;
         case "n":
           e.preventDefault();
-          {
-            const start = Math.ceil(Date.now() / 1_800_000) * 1_800_000;
-            setCreateDialog({
-              open: true,
-              mode: "create",
-              defaultStart: start,
-              defaultEnd: start + 3_600_000,
-            });
-          }
+          useUiStore.getState().openCreateDialog();
           break;
         case "1":
           e.preventDefault();
@@ -283,8 +303,14 @@ export default function App() {
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [setView, goToday]);
+    void listen("riliagent:cmd-k", togglePalette).then((u) => {
+      unlisten = u;
+    });
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      unlisten?.();
+    };
+  }, [setView, goToday, setSettingsOpen]);
 
   return (
     <div className="flex h-full overflow-hidden">
@@ -300,14 +326,16 @@ export default function App() {
           {view === "week" ? <WeekView /> : <MonthView />}
         </motion.main>
       </div>
+      <ChatDock />
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <EventDialog
         state={createDialog}
-        onClose={() => setCreateDialog((s) => ({ ...s, open: false }))}
+        onClose={closeCreateDialog}
         onCreate={async (input) => {
           await createEvent(input);
         }}
       />
+      <CommandPalette />
     </div>
   );
 }
