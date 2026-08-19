@@ -11,22 +11,17 @@ import {
 import { motion } from "framer-motion";
 import {
   CalendarDays,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Command as CommandIcon,
   Library,
-  Loader2,
   Sparkles,
 } from "lucide-react";
-import { modules } from "../modules";
-import { toolRegistry } from "../kernel/agent/registry";
-import { commands } from "../kernel/commands";
-import { ragSources } from "../kernel/rag/sources";
 import { useCalendarStore } from "../stores/calendarStore";
 import { CATEGORIES } from "../lib/colors";
 import { startOfWeek, weekDays } from "../lib/time";
 import { cn } from "../lib/utils";
+import { WeekView } from "../modules/calendar/components/WeekView";
 
 /* ---------------- TopBar ---------------- */
 
@@ -182,69 +177,21 @@ function Sidebar() {
 
 /* ---------------- Main ---------------- */
 
-function BootStatus() {
-  const { status, error } = useCalendarStore();
-  return (
-    <div className="glass rounded-3xl p-6">
-      <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
-        {status === "error" ? (
-          <span className="text-red-400">数据层异常</span>
-        ) : (
-          <>
-            <CheckCircle2 className="size-4 text-emerald-400" />
-            内核与模块已启动
-          </>
-        )}
-      </div>
-      {status === "error" && (
-        <p className="mb-3 font-mono text-xs text-red-400">{error}</p>
-      )}
-      <ul className="space-y-2">
-        {modules.map((m) => (
-          <li key={m.id} className="flex items-center gap-2 text-xs text-foreground/80">
-            <span className="rounded-md bg-white/6 px-1.5 py-0.5 font-mono text-[10px] text-indigo-300">
-              {m.id}
-            </span>
-            {m.name}
-            <span className="ml-auto text-[10px] text-muted-foreground/60">
-              迁移 {m.migrations?.length ?? 0} · 工具{" "}
-              {Object.keys(m.tools ?? {}).length} · 命令 {m.commands?.length ?? 0} · RAG{" "}
-              {m.ragSources?.length ?? 0}
-            </span>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-3 border-t border-white/6 pt-3 text-[11px] text-muted-foreground/70">
-        注册表合计：{toolRegistry.getAll().length} 工具 · {commands.getAll().length} 命令 ·{" "}
-        {ragSources.getAll().length} RAG 源
-      </p>
-    </div>
-  );
-}
-
-function WeekPlaceholder() {
-  const { status } = useCalendarStore();
+function MonthPlaceholder() {
   return (
     <div className="glass flex flex-1 flex-col items-center justify-center gap-3 rounded-3xl p-8 text-center">
-      {status === "loading" ? (
-        <Loader2 className="size-6 animate-spin text-indigo-300" />
-      ) : (
-        <>
-          <CalendarDays className="size-8 text-indigo-300/70" />
-          <div className="text-sm font-medium">周视图建设中（M1 · C2）</div>
-          <div className="max-w-md text-xs leading-relaxed text-muted-foreground/70">
-            时间网格 + 当前时间线 + 事件 CRUD + 拖拽改时间 + resize 改时长。
-            <br />
-            数据层（SQLite + 迁移）已就绪，下一步在本区域渲染真实日程。
-          </div>
-        </>
-      )}
+      <CalendarDays className="size-8 text-indigo-300/70" />
+      <div className="text-sm font-medium">月视图建设中（M1 · C3）</div>
+      <div className="max-w-md text-xs leading-relaxed text-muted-foreground/70">
+        完整月网格 + 事件块 + 点击编辑 + 拖拽换日 + 溢出 +N 弹层，将在 C3 落地。
+      </div>
     </div>
   );
 }
 
 export default function App() {
   const reload = useCalendarStore((s) => s.reload);
+  const view = useCalendarStore((s) => s.view);
   useEffect(() => {
     void reload();
   }, [reload]);
@@ -258,10 +205,9 @@ export default function App() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 200, damping: 24 }}
-          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 pt-0"
+          className="flex min-h-0 flex-1 flex-col gap-4 p-4 pt-0"
         >
-          <BootStatus />
-          <WeekPlaceholder />
+          {view === "week" ? <WeekView /> : <MonthPlaceholder />}
         </motion.main>
       </div>
     </div>
