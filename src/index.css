@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Dark-first 主题（单主题，无亮色模式） */
+:root {
+  --background: #0b0d12;
+  --foreground: #e7e9ee;
+  --card: rgba(255, 255, 255, 0.045);
+  --card-foreground: #e7e9ee;
+  --muted: rgba(255, 255, 255, 0.06);
+  --muted-foreground: #8b93a5;
+  --border: rgba(255, 255, 255, 0.09);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: #6d7cff;
+  --primary: #6d7cff;
+  --primary-foreground: #0b0d12;
+  --secondary: rgba(255, 255, 255, 0.07);
+  --secondary-foreground: #e7e9ee;
+  --accent: rgba(109, 124, 255, 0.16);
+  --accent-foreground: #cfd6ff;
+  --destructive: #f87171;
+  --radius: 14px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family:
+      "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
+      "PingFang SC", "Microsoft YaHei", sans-serif;
+    /* 环境光感：非纯黑底的 ambient gradients */
+    background-image:
+      radial-gradient(1200px 800px at 85% -10%, rgba(99, 102, 241, 0.16), transparent 60%),
+      radial-gradient(1000px 700px at -10% 110%, rgba(56, 189, 248, 0.1), transparent 55%),
+      radial-gradient(900px 600px at 50% 50%, rgba(139, 92, 246, 0.06), transparent 60%);
+    background-attachment: fixed;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* 玻璃拟态面板 */
+@utility glass {
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
