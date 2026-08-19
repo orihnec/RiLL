@@ -1,4 +1,4 @@
-import { streamText, tool, isStepCount } from "ai";
+import { streamText, generateText, tool, isStepCount } from "ai";
 import type { ModelMessage } from "ai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
@@ -118,6 +118,7 @@ export interface ChatRunEvents {
 /**
  * 真实 LLM 路径：AI SDK streamText（纯客户端，浏览器运行时）
  * 自动多步工具循环（stopWhen 放开步数上限），流式增量回传给 UI。
+ * 流式失败时自动降级为一次性 generateText（保证可用性）。
  */
 export async function runRealChat(
   events: ChatRunEvents,
@@ -127,50 +128,83 @@ export async function runRealChat(
   const system = await buildSystemPrompt();
   events.onStart(msgId, []);
 
+  const model = getChatModel();
+  const messages = toCoreMessages(history);
+  const tools = toAiTools();
+
   const abort = new AbortController();
   currentAbort = abort;
   try {
-    const result = streamText({
-      model: getChatModel(),
-      system,
-      // history 已包含 send() 刚追加的用户消息
-      messages: toCoreMessages(history),
-      tools: toAiTools(),
-      // 默认 stopWhen 是 isStepCount(1)：必须显式放开才能自动续跑工具循环
-      stopWhen: isStepCount(8),
-      abortSignal: abort.signal,
-    });
+    try {
+      const result = streamText({
+        model,
+        system,
+        // history 已包含 send() 刚追加的用户消息
+        messages,
+        tools,
+        // 默认 stopWhen 是 isStepCount(1)：必须显式放开才能自动续跑工具循环
+        stopWhen: isStepCount(8),
+        abortSignal: abort.signal,
+      });
 
-    let content = "";
-    const toolViews = new Map<string, ToolCallView>();
+      let content = "";
+      const toolViews = new Map<string, ToolCallView>();
 
-    for await (const part of result.fullStream) {
-      if (part.type === "text-delta") {
-        content += part.text;
-        events.onDelta(msgId, part.text);
-      } else if (part.type === "tool-call") {
-        const tc = part as typeof part & { toolCallId: string; toolName: string; input?: unknown };
-        const tv: ToolCallView = {
+      for await (const part of result.fullStream) {
+        if (part.type === "text-delta") {
+          content += part.text;
+          events.onDelta(msgId, part.text);
+        } else if (part.type === "tool-call") {
+          const tc = part as typeof part & { toolCallId: string; toolName: string; input?: unknown };
+          const tv: ToolCallView = {
+            id: tc.toolCallId,
+            name: tc.toolName,
+            args: (tc.input ?? {}) as Record<string, unknown>,
+            status: "running",
+          };
+          toolViews.set(tc.toolCallId, tv);
+          events.onTool(msgId, tv);
+        } else if (part.type === "tool-result") {
+          const tr = part as typeof part & { toolCallId: string; output?: unknown };
+          const prev = toolViews.get(tr.toolCallId);
+          if (prev) {
+            const next: ToolCallView = { ...prev, status: "done", result: fmtResult(tr.output) };
+            toolViews.set(tr.toolCallId, next);
+            events.onTool(msgId, next);
+          }
+        } else if (part.type === "error") {
+          console.error("[chat] stream part error", part.error);
+        }
+      }
+    } catch (e) {
+      // 流式路径失败（传输层/供应商差异）：降级为一次性请求，工具照常执行
+      console.warn("[chat] streaming failed, fallback to one-shot:", e);
+      const res = await generateText({
+        model,
+        system,
+        messages,
+        tools,
+        stopWhen: isStepCount(8),
+      });
+      const calls = ((res as unknown as { toolCalls?: { toolCallId: string; toolName: string; input?: unknown }[] }).toolCalls ?? []);
+      const results = ((res as unknown as { toolResults?: { toolCallId: string; output?: unknown }[] }).toolResults ?? []);
+      for (const tc of calls) {
+        const view: ToolCallView = {
           id: tc.toolCallId,
           name: tc.toolName,
           args: (tc.input ?? {}) as Record<string, unknown>,
           status: "running",
         };
-        toolViews.set(tc.toolCallId, tv);
-        events.onTool(msgId, tv);
-      } else if (part.type === "tool-result") {
-        const tr = part as typeof part & { toolCallId: string; output?: unknown };
-        const prev = toolViews.get(tr.toolCallId);
-        if (prev) {
-          const next: ToolCallView = { ...prev, status: "done", result: fmtResult(tr.output) };
-          toolViews.set(tr.toolCallId, next);
-          events.onTool(msgId, next);
-        }
-      } else if (part.type === "error") {
-        console.error("[chat] stream part error", part.error);
+        events.onTool(msgId, view);
+        const tr = results.find((r) => r.toolCallId === tc.toolCallId);
+        events.onTool(msgId, {
+          ...view,
+          status: tr ? "done" : "error",
+          result: tr ? fmtResult(tr.output) : "无返回结果",
+        });
       }
+      if (res.text) events.onDelta(msgId, res.text);
     }
-
     events.onDone(msgId);
   } finally {
     currentAbort = null;

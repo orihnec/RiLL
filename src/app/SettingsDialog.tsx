@@ -67,6 +67,14 @@ export function SettingsDialog({ open, onClose }: Props) {
     setTimeout(() => setSaved(false), 1500);
   };
 
+  /** 点选模型芯片：立即写入 store 并持久化（避免"填了没保存"导致聊天用旧模型）。 */
+  const pickModel = (m: string) => {
+    setChatModel(m);
+    setLlm({ chatModel: m });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500);
+  };
+
   const saveKey = async () => {
     if (!apiKeyInput.trim()) return;
     setSavingKey(true);
@@ -165,7 +173,7 @@ export function SettingsDialog({ open, onClose }: Props) {
                 {models.map((m) => (
                   <button
                     key={m}
-                    onClick={() => setChatModel(m)}
+                    onClick={() => pickModel(m)}
                     className={cn(
                       "rounded-md border px-2 py-0.5 font-mono text-[11px] transition",
                       chatModel === m
