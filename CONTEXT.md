@@ -105,6 +105,29 @@ src/lib/           # time.ts · colors.ts · utils.ts
 - 日历摘要可入 RAG（"上周我忙了什么"），但 Agent 优先走 `calendar_listEvents`
 - M3 结束暂停验收；之后 M4 自迭代（event_edits 链路已就位）
 
-## 8. 环境
+## 8. 待办与缺口清单（未做事项同步）
+
+### A. 未开工里程碑
+- **M3 RAG + 知识库**：见 §7（唯一未开工的大块）
+- **M4 自迭代**：反思任务（读 event_edits 生成 pending 偏好）、记忆设置页（偏好/技能查看/确认/编辑/删除）、技能沉淀（≥3 次提示）、偏好注入 prompt（prompts.ts 已查询 preferences/skills 表，只差写入端）、90 天无信号自动归档。event_edits 落位 ✓、preferences/skills 表已建 ✓
+
+### B. 已知缺口 / 技术债
+1. **bundle 体积**：前端单 chunk 1.06MB（gzip 315KB），未做代码分割（vite manualChunks / 懒加载）——桌面应用无网络成本，优先级低，发布前可做
+2. **mock 演示不支持改/删意图**：parseIntent 只覆盖 create/list/freeSlots——演示模式体验不到"复述确认"链路（真 LLM 可用）
+3. **无头测试缺口**：findFreeSlots（依赖 DB 未镜像）、chatStore 多会话逻辑、迁移后 chat.ts 的会话 CRUD——目前靠 build + 真机验证
+4. **release 打包过期**：MSI/NSIS 冒烟是 M1 做的，M2/多会话/修复之后未重打包——发布前必须重跑 `npm run tauri build`
+5. **Agent 改/删确认无硬拦截**：目前是 prompt 约束（模型不听话可能直接执行）——M2 决策如此，已知风险；可选：工具级 approval（AI SDK v7 有 toolApproval 机制可调研）
+6. **全局快捷键注册失败静默**：lib.rs `let _ = register(...)`——失败时应用内 Ctrl+K（keydown）仍可用，但无提示
+7. **可选增强**：会话标题重命名、设置页"打开数据库目录/备份"按钮、chat_messages 清理策略（个人规模暂可接受）
+8. **日志噪音**：runtime.ts 的调试 console.log（`[chat] ...`）保留中，发布前可收敛为 debug 级
+
+### C. 待用户确认
+1. DeepSeek API key 是否已重置（在聊天中暴露过，已提醒）
+2. 是否现在重新跑一次 release 打包
+
+### D. 规格明确不做（已确认排除，勿再提）
+多用户 / 云同步 / Google Calendar 同步 / 插件市场 / 动态插件加载 / 通知提醒 v1 / "此及以后"拆分系列 / 月视图内 resize / 原生文件 watch / 跨时区。
+
+## 9. 环境
 
 Node v24 / npm（无 pnpm）/ Rust 1.97.1（MSVC）/ WebView2。开发：`npm run tauri dev`。DeepSeek 实测 key 用户提供（聊天中贴过，已提醒用户重置）；测试脚本 key 一律走 `$env:DEEPSEEK_KEY`，**严禁写入代码/git**。
