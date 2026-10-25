@@ -1,0 +1,46 @@
+Rill（日律）0.1.0 · macOS 安装说明
+===================================
+
+一、里面有哪个版本
+  · Rill_0.1.0_aarch64.dmg  → Apple 芯片（M1/M2/M3/M4）用这个
+  · Rill_0.1.0_x64.dmg      → Intel 芯片用这个
+  不确定自己是哪种：左上角  → 关于本机 → 看「芯片」一栏
+  （显示 Apple M... = Apple 芯片；显示 Intel = Intel）
+
+二、怎么装
+  1. 双击对应的 .dmg
+  2. 弹出窗口里，把 Rill 图标拖到右边的 Applications 文件夹
+  3. 打开「启动台」→ Rill
+
+三、第一次打开会提示"无法打开，因为无法验证开发者"
+  这是因为安装包没有 Apple 开发者签名（不是病毒）。三选一：
+
+  方法 A（推荐，最简单）
+    右键点 Rill 图标 → 选「打开」→ 在弹窗里再点「打开」
+    （只需做一次，以后正常双击）
+
+  方法 B（命令行，一次搞定）
+    打开「终端」，粘贴执行：
+      xattr -dr com.apple.quarantine /Applications/Rill.app
+
+  方法 C
+    系统设置 → 隐私与安全性 → 页面下方点「仍要打开」
+
+四、第一次打开要做什么
+  1. 左下角齿轮 → 设置 → LLM 接入：填自己的 API（DeepSeek / OpenAI 兼容接口）
+  2. 邮箱：选服务商（QQ/163/Gmail…），密码处填「授权码」不是登录密码
+  3. 求职/校招：求职中心 → 校招库 → 「抓取并入库」
+
+五、数据与隐私
+  · 全部数据在本机：~/Library/Application Support/com.riliagent.app/riliagent.db
+  · API Key 与邮箱授权码存在 macOS 钥匙串（Keychain）
+  · 没有服务器、没有账号体系
+
+六、关闭行为
+  · 第一次关闭会问一次：最小化到托盘 / 退出程序，选完不再询问
+  · 想改：设置 → 关闭窗口
+  · macOS 上窗口左上角是系统红绿灯，最小化到托盘后图标在顶部菜单栏
+
+七、卸载
+  · 把 /Applications/Rill.app 拖到废纸篓
+  · 想彻底清数据：删除 ~/Library/Application Support/com.riliagent.app

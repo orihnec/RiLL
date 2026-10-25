@@ -1,0 +1,87 @@
+name: release
+
+# 打 tag（v*）或手动触发：同时构建 Windows + macOS，并把安装包挂到 GitHub Release。
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    name: macOS ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [aarch64-apple-darwin, x86_64-apple-darwin]
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - name: Build & publish dmg
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --target ${{ matrix.target }}
+          tagName: v__VERSION__
+          releaseName: Rill v__VERSION__
+          releaseBody: |
+            本地优先的日程 / 求职 / 邮箱助手。数据全部在本机。
+
+            - **Windows**：`Rill_*_x64-setup.exe`（双击安装）或 `.msi`
+            - **macOS Apple 芯片**：`Rill_*_aarch64.dmg`
+            - **macOS Intel**：`Rill_*_x64.dmg`
+
+            安装包未做代码签名：Windows 首次运行点「更多信息 → 仍要运行」；
+            macOS 首次打开请右键 → 打开（详见附件里的安装说明）。
+          releaseDraft: false
+          prerelease: false
+
+  windows:
+    name: Windows x64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - name: Build & publish installers
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: Rill v__VERSION__
+          releaseDraft: false
+          prerelease: false
+
+  notes:
+    name: 附加安装说明
+    needs: [macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            docs/install-windows.txt
+            docs/install-macos.txt
