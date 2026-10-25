@@ -54,12 +54,12 @@ async function ensureSessionTitle(sessionId: string, content: string): Promise<v
   ]);
 }
 
-/** 会话消息落库（按 session 分组）。 */
+/** 会话消息落库（按 session 分组，含附件）。 */
 export async function saveChatMessage(msg: ChatMsg, sessionId: string): Promise<void> {
   const db = getDb();
   await db.execute(
-    `INSERT INTO chat_messages (id, session_id, role, content, tool_calls_json, reasoning, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    `INSERT INTO chat_messages (id, session_id, role, content, tool_calls_json, reasoning, attachments_json, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
     [
       msg.id,
       sessionId,
@@ -67,6 +67,7 @@ export async function saveChatMessage(msg: ChatMsg, sessionId: string): Promise<
       msg.content || null,
       msg.toolCalls.length ? JSON.stringify(msg.toolCalls) : null,
       msg.reasoning || null,
+      msg.attachments && msg.attachments.length ? JSON.stringify(msg.attachments) : null,
       Date.now(),
     ],
   );
@@ -92,9 +93,10 @@ export async function loadSessionMessages(
       content: string | null;
       tool_calls_json: string | null;
       reasoning: string | null;
+      attachments_json: string | null;
     }[]
   >(
-    `SELECT id, role, content, tool_calls_json, reasoning FROM chat_messages
+    `SELECT id, role, content, tool_calls_json, reasoning, attachments_json FROM chat_messages
      WHERE session_id = $1
      ORDER BY created_at ASC, rowid ASC
      LIMIT $2`,
@@ -106,6 +108,7 @@ export async function loadSessionMessages(
     content: r.content ?? "",
     reasoning: r.reasoning ?? undefined,
     toolCalls: r.tool_calls_json ? (JSON.parse(r.tool_calls_json) as ToolCallView[]) : [],
+    attachments: r.attachments_json ? (JSON.parse(r.attachments_json) as ChatMsg["attachments"]) : undefined,
   }));
 }
 

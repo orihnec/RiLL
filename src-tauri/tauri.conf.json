@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "RiliAgent",
+  "productName": "Rill",
   "version": "0.1.0",
   "identifier": "com.riliagent.app",
   "build": {
@@ -12,11 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "RiliAgent",
+        "title": "Rill",
         "width": 1440,
         "height": 900,
         "minWidth": 1080,
-        "minHeight": 700
+        "minHeight": 700,
+        "decorations": false,
+        "shadow": true
       }
     ],
     "security": {
@@ -26,6 +28,25 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "category": "Productivity",
+    "windows": {
+      "nsis": {
+        "installerHooks": "installer/hooks.nsh"
+      },
+      "wix": {
+        "upgradeCode": "8f3c1a52-6d47-4b91-9e0c-2a7d54b6f318"
+      }
+    },
+    "shortDescription": "本地优先的日程 + 求职 + 邮箱助手",
+    "longDescription": "Rill（日律）：本地优先的个人日程管理，内置 AI 助手、求职看板、校招信息库与 IMAP 邮箱。数据全部存在本机 SQLite。",
+    "macOS": {
+      "minimumSystemVersion": "10.15",
+      "dmg": {
+        "windowSize": { "width": 660, "height": 400 },
+        "appPosition": { "x": 180, "y": 170 },
+        "applicationFolderPosition": { "x": 480, "y": 170 }
+      }
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

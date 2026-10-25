@@ -5,6 +5,10 @@ import type { Command } from "./commands";
 import { commands } from "./commands";
 import type { RagSource } from "./rag/sources";
 import { ragSources } from "./rag/sources";
+import type { Migration } from "./db";
+
+/** 模块迁移：纯 SQL，或带 skipIf 的幂等迁移（ALTER 加列必须用后者）。 */
+export type ModuleMigration = string | Pick<Migration, "sql" | "skipIf">;
 
 /**
  * 模块可注册的 6 类能力（均可选）。
@@ -13,8 +17,8 @@ import { ragSources } from "./rag/sources";
 export interface Module {
   id: string;
   name: string;
-  /** 有序迁移 SQL（schema.sql / 后续迁移文件） */
-  migrations?: string[];
+  /** 有序迁移 SQL（schema.sql / 后续迁移文件）；ALTER 类用 { sql, skipIf } 保证幂等重放 */
+  migrations?: ModuleMigration[];
   /** Agent 工具：{工具名: 工具}，命名 {模块}_{动词} */
   tools?: Record<string, Tool>;
   /** RAG 数据源 */
@@ -44,7 +48,7 @@ export interface SettingDef {
 export interface ModuleRegistry {
   modules: Module[];
   /** 扁平化的迁移清单（模块顺序 = 应用顺序） */
-  migrations: { id: string; sql: string }[];
+  migrations: Migration[];
 }
 
 /** 加载模块清单：注册各模块能力，返回迁移清单。 */
@@ -60,8 +64,13 @@ export function loadModules(modules: Module[]): ModuleRegistry {
     for (const src of mod.ragSources ?? []) {
       ragSources.register(src);
     }
-    (mod.migrations ?? []).forEach((sql, i) => {
-      migrations.push({ id: `${mod.id}:${i}`, sql });
+    (mod.migrations ?? []).forEach((m, i) => {
+      // 迁移 id 由「模块 id + 数组下标」稳定寻址，插入新迁移只能追加、不能打乱顺序
+      migrations.push(
+        typeof m === "string"
+          ? { id: `${mod.id}:${i}`, sql: m }
+          : { id: `${mod.id}:${i}`, sql: m.sql, skipIf: m.skipIf },
+      );
     });
     console.info(`[kernel] module loaded: ${mod.id} (${mod.name})`);
   }

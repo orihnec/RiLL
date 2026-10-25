@@ -1,5 +1,5 @@
 // 校验全部 schema/迁移 SQL 语法与关键逻辑（node:sqlite 内置，无需联网）。
-// 按迁移顺序执行（v1/v2/v3 依赖前序表），末尾做 rollback 冒烟。
+// 按迁移顺序执行（v1~v4 依赖前序表），末尾做 rollback 冒烟。
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -11,8 +11,22 @@ const files = [
   "kernel/schema-v1.sql",
   "kernel/schema-v2.sql",
   "kernel/schema-v3.sql",
+  "kernel/schema-v4.sql",
+  "kernel/schema-v5.sql",
+  "kernel/schema-v6.sql",
+  "kernel/schema-v7.sql",
   "modules/calendar/schema.sql",
   "modules/knowledge/schema.sql",
+  "modules/jobs/schema.sql",
+  "modules/scout/schema.sql",
+  "modules/scout/schema-v2.sql",
+  "modules/scout/schema-v3.sql",
+  "modules/mail/schema.sql",
+  "modules/mail/schema-v2.sql",
+  "modules/mail/schema-v3.sql",
+  "modules/mail/schema-v4.sql",
+  "modules/mail/schema-v5.sql",
+  "modules/mail/schema-v6.sql",
 ];
 
 const db = new DatabaseSync(":memory:");
@@ -67,6 +81,44 @@ try {
     .all("再问");
   console.log(`SMOKE search: ${JSON.stringify(found)}（应为空，已被回退删除）`);
   if (found.length !== 0) ok = false;
+
+  // 校招信息库：旧表已删 + 去重键 UPSERT + 列内 OR / 列间 AND 多重筛选
+  const legacy = db
+    .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='job_listings'")
+    .get();
+  console.log(`SMOKE drop job_listings: ${JSON.stringify(legacy ?? null)}（应为 null）`);
+  if (legacy) ok = false;
+
+  const insertCampus = (id, key, company, locations) =>
+    db
+      .prepare(
+        `INSERT INTO campus_recruits
+           (id,dedupe_key,company,batch,positions,location,industry,raw_json,first_seen_at,updated_at)
+         VALUES (?,?,?,'27届','后端',?,'互联网','{}',1,1)
+         ON CONFLICT(dedupe_key) DO UPDATE SET company=excluded.company, updated_at=excluded.updated_at`,
+      )
+      .run(id, key, company, locations);
+  insertCampus("c1", "link:https://a", "字节跳动", "北京,上海");
+  insertCampus("c2", "cp:腾讯|27届|前端", "腾讯", "深圳");
+  insertCampus("c3", "link:https://a", "字节跳动", "北京,上海"); // 同键 → 刷新不新增
+  const campus = db.prepare("SELECT count(*) AS n FROM campus_recruits").get();
+  console.log(`SMOKE campus dedupe: ${JSON.stringify(campus)}（应 2）`);
+  if (campus.n !== 2) ok = false;
+  const kept = db
+    .prepare("SELECT first_seen_at FROM campus_recruits WHERE dedupe_key='link:https://a'")
+    .get();
+  if (kept.first_seen_at !== 1) {
+    ok = false;
+    console.error(`SMOKE FAIL: first_seen_at 应保持首次值，实际 ${kept.first_seen_at}`);
+  }
+  const multi = db
+    .prepare(
+      `SELECT company FROM campus_recruits
+       WHERE (location LIKE ? OR location LIKE ?) AND industry LIKE ?`,
+    )
+    .all("%北京%", "%深圳%", "%互联网%");
+  console.log(`SMOKE campus 多列筛选: ${JSON.stringify(multi)}（应 2 条）`);
+  if (multi.length !== 2) ok = false;
 } catch (e) {
   ok = false;
   console.error(`SMOKE FAIL: ${e.message}`);

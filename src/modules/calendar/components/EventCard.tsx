@@ -1,4 +1,4 @@
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { format } from "date-fns";
 import { Repeat2 } from "lucide-react";
 import type { Occurrence } from "../service";
@@ -11,10 +11,11 @@ interface Props {
   onClick: () => void;
   onPointerDown: (e: ReactPointerEvent) => void;
   onResizeStart: (e: ReactPointerEvent) => void;
+  onContextMenu?: (e: ReactMouseEvent) => void;
 }
 
 /** 周视图中的单个事件卡片：低饱和渐变 + 左侧色条。 */
-export function EventCard({ occ, draft, onClick, onPointerDown, onResizeStart }: Props) {
+export function EventCard({ occ, draft, onClick, onPointerDown, onResizeStart, onContextMenu }: Props) {
   const cat = categoryOf(occ.category);
   const compact = occ.endAt - occ.startAt < 45 * 60_000;
 
@@ -28,6 +29,11 @@ export function EventCard({ occ, draft, onClick, onPointerDown, onResizeStart }:
       onDoubleClick={(e) => {
         e.stopPropagation();
         onClick();
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onContextMenu?.(e);
       }}
       title={`${occ.title}\n${format(new Date(occ.startAt), "HH:mm")} – ${format(new Date(occ.endAt), "HH:mm")}`}
       className={cn(
@@ -51,11 +57,11 @@ export function EventCard({ occ, draft, onClick, onPointerDown, onResizeStart }:
           </div>
         )}
       </div>
-      {/* resize 手柄 */}
+      {/* resize 手柄（颜色随主题：深色系偏白、浅色系偏墨） */}
       <div
         onPointerDown={onResizeStart}
         className="absolute inset-x-0 bottom-0 h-1.5 cursor-ns-resize opacity-0 transition-opacity group-hover:opacity-100"
-        style={{ background: "rgba(255,255,255,0.35)" }}
+        style={{ background: "color-mix(in oklab, var(--color-white) 35%, transparent)" }}
       />
     </div>
   );

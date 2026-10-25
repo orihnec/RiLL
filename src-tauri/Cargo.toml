@@ -1,7 +1,7 @@
 [package]
 name = "riliagent"
 version = "0.1.0"
-description = "Personal AI Calendar — local-first desktop calendar with AI agent"
+description = "Rill — local-first calendar, job board and mail with an AI agent"
 authors = ["you"]
 edition = "2021"
 
@@ -17,11 +17,35 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
+# LNK1318 PDB LIMIT(12)：依赖增多后 full debug info 超出链接器 PDB 流限制
+[profile.dev]
+debug = 1
+
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-http = "2.5.9"
 tauri-plugin-global-shortcut = "2.3.2"
 tauri-plugin-keyring = "0.1.0"
+tauri-plugin-opener = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
+
+# 邮箱（mail 模块 M1）：IMAP 直连读信 + MIME 解析
+# imap 2.4 的 `tls` 特性在 Windows 走 SChannel（无需 C 工具链）；mail-parser 负责
+# MIME/编码/附件解析（含 GBK/GB18030 等中文编码）
+# 邮箱（mail 模块 M1）：IMAP 自己走协议（imap crate 有 panic 级 bug，见 src/mail.rs 顶部说明），
+# 只借 native-tls 做 TLS（Windows 走 SChannel，无需 C 工具链）+ mail-parser 解析 MIME
+native-tls = "0.2"
+mail-parser = "0.11"
+# 网易系文件夹名是 modified UTF-7（如「已发送」= &XfJT0ZAB-），需要自己解码
+base64 = "0.22"
+# 中文邮件（51job/银行/国企）大量是 GBK/GB2312 且**不声明 charset**，
+# mail-parser 会按 UTF-8 解 → 乱码（「校」的 GBK 字节 D0A3 恰好是合法 UTF-8 的「У」）。
+# 所以自己按"声明优先、否则 UTF-8/GB18030 嗅探"解码。
+encoding_rs = "0.8"
+pdf-extract = "0.12.1"
+zip = "9.1.0"

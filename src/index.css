@@ -19,13 +19,18 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  /* 面板用的更大圆角也跟随主题（默认值与 Tailwind 默认一致） */
+  --radius-2xl: calc(var(--radius) + 2px);
+  --radius-3xl: calc(var(--radius) + 10px);
 }
 
-/* Dark-first 主题（单主题，无亮色模式） */
+/* Dark-first 主题（单主题，无亮色模式）；下面的变量会被「主题与风格」面板在
+   documentElement 上内联覆盖（主题色/背景/圆角），此处的值即默认主题。 */
 :root {
   --background: #0b0d12;
   --foreground: #e7e9ee;
@@ -46,6 +51,32 @@
   --accent-foreground: #cfd6ff;
   --destructive: #f87171;
   --radius: 14px;
+  /* 背景：底色 + 环境光渐变（主题面板会覆盖 --app-bg / --app-bg-image） */
+  --app-bg: #0b0d12;
+  --glow-a: rgba(99, 102, 241, 0.16);
+  --glow-b: rgba(56, 189, 248, 0.1);
+  --glow-c: rgba(139, 92, 246, 0.06);
+  --app-bg-image:
+    radial-gradient(1200px 800px at 85% -10%, var(--glow-a), transparent 60%),
+    radial-gradient(1000px 700px at -10% 110%, var(--glow-b), transparent 55%),
+    radial-gradient(900px 600px at 50% 50%, var(--glow-c), transparent 60%);
+  /* 玻璃面板 / 代码块 / 滚动条 / 表格表头（浅色系由主题面板整组覆盖） */
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  /* 玻璃材质三档模糊强度 + 顶部高光（浅色系由主题面板整组覆盖） */
+  --glass-blur: 18px;
+  --glass-blur-bar: 12px;
+  --glass-blur-float: 28px;
+  --glass-highlight: rgba(255, 255, 255, 0.07);
+  --code-bg: #0d0f16;
+  --scroll-thumb: rgba(255, 255, 255, 0.1);
+  --sticky-head: #101219;
+  --overlay: rgba(0, 0, 0, 0.5);
+  /* 类别/状态派生色浓度（浅色系由主题面板整组覆盖，见 lib/colors.ts） */
+  --tint-text: 22%;
+  --tint-from: 18%;
+  --tint-to: 6%;
 }
 
 @layer base {
@@ -58,15 +89,13 @@
     height: 100%;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
     font-family:
       "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
       "PingFang SC", "Microsoft YaHei", sans-serif;
-    /* 环境光感：非纯黑底的 ambient gradients */
-    background-image:
-      radial-gradient(1200px 800px at 85% -10%, rgba(99, 102, 241, 0.16), transparent 60%),
-      radial-gradient(1000px 700px at -10% 110%, rgba(56, 189, 248, 0.1), transparent 55%),
-      radial-gradient(900px 600px at 50% 50%, rgba(139, 92, 246, 0.06), transparent 60%);
+    /* 底色 + 环境光感（跟随主题：--app-bg / --app-bg-image 可被主题面板覆盖） */
+    background-color: var(--app-bg, var(--background));
+    background-image: var(--app-bg-image, none);
     background-attachment: fixed;
   }
   ::-webkit-scrollbar {
@@ -74,7 +103,7 @@
     height: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--scroll-thumb, rgba(255, 255, 255, 0.1));
     border-radius: 8px;
     border: 2px solid transparent;
     background-clip: content-box;
@@ -84,10 +113,72 @@
   }
 }
 
-/* 玻璃拟态面板 */
+/* 悬浮窗（view=overview）专用：不透明深色底板（无渐变，加速渲染；避免透明窗口合成瑕疵） */
+body.is-overview {
+  background-color: var(--app-bg, #0b0d12);
+  background-image: none;
+  background-attachment: scroll;
+}
+
+/* 玻璃拟态面板（颜色走令牌：浅色系下是白色半透明 + 深墨描边）
+   三个层级：glass（内容面板）· glass-bar（外壳：标题栏/图标栏/顶栏）· glass-float（浮层：对话框/下拉/抽屉/右键菜单） */
 @utility glass {
-  background: rgba(255, 255, 255, 0.045);
-  backdrop-filter: blur(18px) saturate(1.2);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  background: var(--glass-bg, rgba(255, 255, 255, 0.045));
+  backdrop-filter: blur(var(--glass-blur, 18px)) saturate(1.25);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  box-shadow:
+    var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.35)),
+    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.07));
+}
+
+/* 外壳条（更薄、更淡，避免整屏都在"发光"） */
+@utility glass-bar {
+  background: color-mix(in oklab, var(--glass-bg, rgba(255, 255, 255, 0.045)) 75%, transparent);
+  backdrop-filter: blur(var(--glass-blur-bar, 12px)) saturate(1.15);
+  border-color: var(--glass-border, rgba(255, 255, 255, 0.08));
+}
+
+/* 浮层（更厚、更亮、阴影更深：要"浮"在内容之上） */
+@utility glass-float {
+  background: color-mix(in oklab, var(--popover, #171923) 88%, transparent);
+  backdrop-filter: blur(var(--glass-blur-float, 28px)) saturate(1.35);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.07));
+}
+
+/* 思考过程行"运行中"扫光动画（DSH reasoning-row sweep） */
+@keyframes reasoning-sweep {
+  0% {
+    left: -300px;
+  }
+  90%,
+  100% {
+    left: 100%;
+  }
+}
+.reasoning-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.reasoning-sweep::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 300px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(109, 124, 255, 0.1) 55%,
+    transparent 100%
+  );
+  animation: reasoning-sweep 2.6s ease-out infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reasoning-sweep::after {
+    animation: none;
+  }
 }

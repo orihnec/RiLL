@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import {
   format,
   isSameMonth,
@@ -13,12 +13,13 @@ import {
   eachDayOfInterval,
 } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Repeat2 } from "lucide-react";
+import { Home, Pencil, Plus, RefreshCw, Repeat2, Trash2 } from "lucide-react";
 import { useCalendarStore } from "../../../stores/calendarStore";
 import { DAY_MS } from "../../../lib/time";
 import { categoryOf } from "../../../lib/colors";
 import type { Occurrence } from "../service";
 import { EventDialog, type DialogState } from "./EventDialog";
+import { ContextMenu, type CtxMenuItem } from "../../../components/ui/ContextMenu";
 import { cn } from "../../../lib/utils";
 
 const MAX_CHIPS = 3;
@@ -39,6 +40,8 @@ export function MonthView() {
   const updateEvent = useCalendarStore((s) => s.updateEvent);
   const createEvent = useCalendarStore((s) => s.createEvent);
   const deleteEvent = useCalendarStore((s) => s.deleteEvent);
+  const reload = useCalendarStore((s) => s.reload);
+  const goToday = useCalendarStore((s) => s.goToday);
 
   const days = useMemo(() => {
     const start = startOfWeek(startOfMonth(viewDate), { weekStartsOn: 1 });
@@ -48,6 +51,7 @@ export function MonthView() {
   const rows = days.length / 7;
 
   const [dialog, setDialog] = useState<DialogState>({ open: false, mode: "create" });
+  const [ctx, setCtx] = useState<{ x: number; y: number; items: CtxMenuItem[] } | null>(null);
   const [ghost, setGhost] = useState<{
     x: number;
     y: number;
@@ -150,10 +154,62 @@ export function MonthView() {
     setDialog({ open: true, mode: "create", defaultStart: s, defaultEnd: s + 3_600_000 });
   };
 
+  /** 空白格右键：按日期新建日程 + 刷新 + 回到今天。 */
+  const openBlankMenu = (e: ReactMouseEvent, day: Date) => {
+    e.preventDefault();
+    const s = startOfDay(day).getTime() + 9 * 3_600_000;
+    setCtx({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        {
+          label: `新建日程（${format(day, "M月d日")}）`,
+          icon: <Plus className="size-3.5" />,
+          onSelect: () => setDialog({ open: true, mode: "create", defaultStart: s, defaultEnd: s + 3_600_000 }),
+        },
+        {
+          label: "刷新日程",
+          icon: <RefreshCw className="size-3.5" />,
+          onSelect: () => void reload(),
+        },
+        {
+          label: "回到今天",
+          icon: <Home className="size-3.5" />,
+          onSelect: () => goToday(),
+        },
+      ],
+    });
+  };
+
+  /** 事件块上右键：编辑 / 删除（两步确认）。 */
+  const openEventMenu = (e: ReactMouseEvent, occ: Occurrence) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCtx({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        {
+          label: "编辑日程",
+          icon: <Pencil className="size-3.5" />,
+          onSelect: () => openEdit(occ),
+        },
+        {
+          label: "删除日程",
+          icon: <Trash2 className="size-3.5" />,
+          danger: true,
+          confirmLabel: "确认删除？",
+          onSelect: () =>
+            void deleteEvent({ id: occ.id, occurrenceStart: occ.originalStart ?? null }),
+        },
+      ],
+    });
+  };
+
   const cat = ghost ? categoryOf(ghost.category) : null;
 
   return (
-    <div className="glass flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       {/* 星期头 */}
       <div className="grid shrink-0 grid-cols-7 border-b border-white/6">
         {["一", "二", "三", "四", "五", "六", "日"].map((w, i) => (
@@ -183,6 +239,7 @@ export function MonthView() {
             <div
               key={day.getTime()}
               onDoubleClick={() => onCellDoubleClick(day)}
+              onContextMenu={(e) => openBlankMenu(e, day)}
               className={cn(
                 "relative flex min-h-0 flex-col gap-0.5 overflow-hidden border-l border-t border-white/5 p-1",
                 idx % 7 === 0 && "border-l-0",
@@ -211,6 +268,7 @@ export function MonthView() {
                     key={occ.id}
                     onPointerDown={(e) => startChipDrag(e, occ, idx)}
                     onClick={() => openEdit(occ)}
+                    onContextMenu={(e) => openEventMenu(e, occ)}
                     title={occ.title}
                     className="flex items-center gap-1 truncate rounded-md border border-white/10 px-1.5 py-0.5 text-left text-[10px] font-medium transition hover:brightness-125"
                     style={{
@@ -294,6 +352,8 @@ export function MonthView() {
         onUpdate={updateEvent}
         onDelete={deleteEvent}
       />
+
+      {ctx && <ContextMenu x={ctx.x} y={ctx.y} items={ctx.items} onClose={() => setCtx(null)} />}
     </div>
   );
 }

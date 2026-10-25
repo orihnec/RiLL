@@ -20,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CATEGORIES, categoryOf } from "../../../lib/colors";
+import { categoryOf } from "../../../lib/colors";
+import { useCategoryStore } from "../../../stores/categoryStore";
 import { toLocalInputValue, fromLocalInputValue } from "../../../lib/time";
 import {
   RECUR_OPTIONS,
@@ -69,6 +70,7 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
   const [confirmDel, setConfirmDel] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const categories = useCategoryStore((s) => s.categories);
 
   // 打开时按模式初始化表单
   useEffect(() => {
@@ -227,7 +229,7 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map((c) => (
+                {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     <span className="flex items-center gap-2">
                       <span

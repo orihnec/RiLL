@@ -2,12 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { format, isToday, startOfDay } from "date-fns";
 import { zhCN } from "date-fns/locale";
+import { Home, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { useCalendarStore } from "../../../stores/calendarStore";
 import { DAY_MS, weekDays } from "../../../lib/time";
 import { categoryOf } from "../../../lib/colors";
 import type { Occurrence } from "../service";
 import { EventCard } from "./EventCard";
 import { EventDialog, type DialogState } from "./EventDialog";
+import { ContextMenu, type CtxMenuItem } from "../../../components/ui/ContextMenu";
 import { cn } from "../../../lib/utils";
 
 export const HOUR_H = 56; // 每小时像素高度
@@ -77,6 +79,8 @@ export function WeekView() {
   const updateEvent = useCalendarStore((s) => s.updateEvent);
   const createEvent = useCalendarStore((s) => s.createEvent);
   const deleteEvent = useCalendarStore((s) => s.deleteEvent);
+  const reload = useCalendarStore((s) => s.reload);
+  const goToday = useCalendarStore((s) => s.goToday);
 
   const days = useMemo(() => weekDays(viewDate), [viewDate]);
   const dayMs = useMemo(() => days.map((d) => startOfDay(d).getTime()), [days]);
@@ -88,6 +92,7 @@ export function WeekView() {
     open: false,
     mode: "create",
   });
+  const [ctx, setCtx] = useState<{ x: number; y: number; items: CtxMenuItem[] } | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const dragRef = useRef<DragState | null>(null);
   const suppressClickRef = useRef(false);
@@ -254,8 +259,61 @@ export function WeekView() {
     setDialog({ open: true, mode: "edit", occ });
   };
 
+  /** 空白处右键：按点击位置新建日程 + 刷新 + 回到今天。 */
+  const openBlankMenu = (e: ReactMouseEvent) => {
+    e.preventDefault();
+    const { ms } = timeAt(e.clientX, e.clientY);
+    const start = Math.round(ms / SNAP_MS) * SNAP_MS;
+    setCtx({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        {
+          label: `新建日程（${format(new Date(start), "M月d日 HH:mm")}）`,
+          icon: <Plus className="size-3.5" />,
+          onSelect: () =>
+            setDialog({ open: true, mode: "create", defaultStart: start, defaultEnd: start + 3_600_000 }),
+        },
+        {
+          label: "刷新日程",
+          icon: <RefreshCw className="size-3.5" />,
+          onSelect: () => void reload(),
+        },
+        {
+          label: "回到今天",
+          icon: <Home className="size-3.5" />,
+          onSelect: () => goToday(),
+        },
+      ],
+    });
+  };
+
+  /** 事件上右键：编辑 / 删除（两步确认）。 */
+  const openEventMenu = (e: ReactMouseEvent, occ: Occurrence) => {
+    e.preventDefault();
+    setCtx({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        {
+          label: "编辑日程",
+          icon: <Pencil className="size-3.5" />,
+          onSelect: () => openEdit(occ),
+        },
+        {
+          label: "删除日程",
+          icon: <Trash2 className="size-3.5" />,
+          danger: true,
+          confirmLabel: "确认删除？",
+          onSelect: () =>
+            void deleteEvent({ id: occ.id, occurrenceStart: occ.originalStart ?? null }),
+        },
+      ],
+    });
+  };
+
   return (
-    <div className="glass flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       {/* 星期头 */}
       <div
         className="grid shrink-0"
@@ -286,31 +344,34 @@ export function WeekView() {
         ))}
       </div>
 
-      {/* 全天条 */}
-      <div
-        className="grid shrink-0 border-b border-white/6"
-        style={{ gridTemplateColumns: `${GUTTER_W}px repeat(7, 1fr)` }}
-      >
-        <div />
-        {byDay.allDay.map((evts, i) => (
-          <div key={i} className="flex min-h-7 flex-col gap-1 px-1 py-1">
-            {evts.map((occ) => (
-              <button
-                key={occ.id}
-                onClick={() => openEdit(occ)}
-                className="truncate rounded-md border border-white/10 px-1.5 py-0.5 text-left text-[10px] font-medium"
-                style={{
-                  background: `linear-gradient(135deg, ${categoryOf(occ.category).from}, ${categoryOf(occ.category).to})`,
-                  color: categoryOf(occ.category).text,
-                }}
-                title={occ.title}
-              >
-                {occ.title}
-              </button>
-            ))}
-          </div>
-        ))}
-      </div>
+      {/* 全天条：**没有全天事件就不占位**（否则星期头下面会多出一条空白） */}
+      {byDay.allDay.some((evts) => evts.length > 0) && (
+        <div
+          className="grid shrink-0 border-b border-white/6"
+          style={{ gridTemplateColumns: `${GUTTER_W}px repeat(7, 1fr)` }}
+        >
+          <div />
+          {byDay.allDay.map((evts, i) => (
+            <div key={i} className="flex min-h-7 flex-col gap-1 px-1 py-1">
+              {evts.map((occ) => (
+                <button
+                  key={occ.id}
+                  onClick={() => openEdit(occ)}
+                  onContextMenu={(e) => openEventMenu(e, occ)}
+                  className="truncate rounded-md border border-white/10 px-1.5 py-0.5 text-left text-[10px] font-medium"
+                  style={{
+                    background: `linear-gradient(135deg, ${categoryOf(occ.category).from}, ${categoryOf(occ.category).to})`,
+                    color: categoryOf(occ.category).text,
+                  }}
+                  title={occ.title}
+                >
+                  {occ.title}
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 时间网格（可滚动） */}
       <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
@@ -336,6 +397,7 @@ export function WeekView() {
                 <div
                   key={i}
                   onDoubleClick={(e) => onDoubleClick(e)}
+                  onContextMenu={(e) => openBlankMenu(e)}
                   className={cn(
                     "relative border-l border-white/5",
                     i === todayIdx && "bg-indigo-400/[0.05]",
@@ -372,6 +434,7 @@ export function WeekView() {
                           onClick={() => openEdit(occ)}
                           onPointerDown={(e) => startMove(e, occ)}
                           onResizeStart={(e) => startResize(e, occ)}
+                          onContextMenu={(e) => openEventMenu(e, occ)}
                         />
                       </div>
                     );
@@ -431,7 +494,7 @@ export function WeekView() {
             {/* 空状态 */}
             {isEmpty && (
               <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-                <div className="rounded-2xl border border-white/8 bg-black/35 px-4 py-2 text-xs text-muted-foreground/80 backdrop-blur">
+                <div className="rounded-2xl border border-white/8 bg-popover/85 px-4 py-2 text-xs text-muted-foreground/80 backdrop-blur">
                   本周暂无日程 — 双击空白处创建（或按 Ctrl+N）
                 </div>
               </div>
@@ -455,6 +518,8 @@ export function WeekView() {
         onUpdate={updateEvent}
         onDelete={deleteEvent}
       />
+
+      {ctx && <ContextMenu x={ctx.x} y={ctx.y} items={ctx.items} onClose={() => setCtx(null)} />}
     </div>
   );
 }

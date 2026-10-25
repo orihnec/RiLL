@@ -39,7 +39,12 @@ export default defineConfig(async () => ({
       : undefined,
     watch: {
       // 3. tell Vite to ignore watching `src-tauri`
-      ignored: ["**/src-tauri/**"],
+      ignored: [
+        "**/src-tauri/**",
+        // 4. 编辑器/工具 atomic 写入产生的临时文件（Windows fs.watch 会 EBUSY 崩掉 dev server）
+        "**/.*.tmpdir/**",
+        "**/*.tmp",
+      ],
     },
   },
 }));

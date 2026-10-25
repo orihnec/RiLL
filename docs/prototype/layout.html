@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>RiliAgent · 布局原型（A/B/C/D 对比）</title>
+<style>
+  :root{
+    --bg:#0a0c11;
+    --bg-2:#0e1118;
+    --fg:#e9ecf4;
+    --muted:#8b93a7;
+    --line:rgba(255,255,255,.08);
+    --line-2:rgba(255,255,255,.06);
+    --panel:rgba(255,255,255,.035);
+    --panel-2:rgba(255,255,255,.06);
+    --accent:#818cf8;
+    --accent-2:rgba(129,140,248,.16);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:radial-gradient(1200px 600px at 20% -10%, #1a2030 0%, var(--bg) 55%) fixed;
+    color:var(--fg);font:13px/1.5 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+    display:flex;flex-direction:column;gap:12px;padding:16px;
+  }
+
+  /* ---------- 顶部：方案切换 ---------- */
+  .stage-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:0 4px}
+  .stage-bar strong{font-size:13px;letter-spacing:.3px}
+  .seg{display:flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+  .seg button{
+    border:0;background:transparent;color:var(--muted);font:inherit;font-size:12px;
+    padding:5px 10px;border-radius:9px;cursor:pointer;transition:.15s;
+  }
+  .seg button:hover{color:var(--fg)}
+  .seg button.on{background:rgba(255,255,255,.1);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+  .hint{color:var(--muted);font-size:11.5px;max-width:640px}
+
+  /* ---------- 模拟窗口 ---------- */
+  .window{
+    flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+    border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#0d1017,#0a0c11);
+    box-shadow:0 24px 60px rgba(0,0,0,.5);
+  }
+  .titlebar{
+    height:38px;flex:0 0 38px;display:flex;align-items:center;gap:8px;padding:0 12px;
+    border-bottom:1px solid var(--line-2);color:var(--muted);font-size:11.5px;
+  }
+  .dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.16)}
+  .win-controls{margin-left:auto;display:flex;gap:8px;color:var(--muted)}
+  .win-controls span{width:26px;height:20px;display:grid;place-items:center;border-radius:6px;border:1px solid var(--line-2)}
+
+  .frame{flex:1;min-height:0;display:flex;overflow:hidden}
+
+  /* ---------- 图标栏（方案 C/D） ---------- */
+  .rail{
+    width:56px;flex:0 0 56px;display:none;flex-direction:column;align-items:center;gap:6px;
+    padding:10px 0;border-right:1px solid var(--line-2);background:rgba(255,255,255,.015);
+  }
+  .rail button{
+    width:38px;height:38px;display:grid;place-items:center;border-radius:11px;border:1px solid transparent;
+    background:transparent;color:var(--muted);cursor:pointer;font-size:15px;transition:.15s;position:relative;
+  }
+  .rail button:hover{background:var(--panel-2);color:var(--fg)}
+  .rail button.on{background:var(--accent-2);border-color:rgba(129,140,248,.4);color:#c7d2fe}
+  .rail .grow{flex:1}
+  .rail .tip{display:none}
+
+  /* ---------- 侧边栏 ---------- */
+  .side{
+    width:224px;flex:0 0 224px;display:flex;flex-direction:column;gap:14px;padding:12px;
+    border-right:1px solid var(--line-2);overflow:auto;
+  }
+  .side.card-style .nav-item{
+    border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:10px 12px;margin-bottom:8px;
+  }
+  .group-label{font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:rgba(139,147,167,.6);padding:0 10px 6px}
+  .nav-item{
+    display:flex;align-items:center;gap:9px;width:100%;text-align:left;cursor:pointer;
+    border:0;border-radius:10px;background:transparent;color:var(--muted);font:inherit;font-size:12.5px;
+    padding:7px 10px;transition:.15s;
+  }
+  .nav-item:hover{background:rgba(255,255,255,.045);color:var(--fg)}
+  .nav-item.on{background:rgba(255,255,255,.09);color:var(--fg);font-weight:600}
+  .nav-item .ic{width:16px;text-align:center;opacity:.9}
+  .nav-item .badge{margin-left:auto;background:rgba(129,140,248,.2);color:#c7d2fe;border-radius:99px;padding:0 6px;font-size:10px}
+
+  /* 小月历 */
+  .minimonth{border:1px solid var(--line-2);border-radius:14px;background:var(--panel);padding:10px}
+  .mm-head{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;margin-bottom:6px}
+  .mm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:10.5px}
+  .mm-grid .w{color:rgba(139,147,167,.7);padding:2px 0}
+  .mm-grid .d{padding:3px 0;border-radius:6px;color:var(--muted);cursor:pointer}
+  .mm-grid .d:hover{background:rgba(255,255,255,.06)}
+  .mm-grid .d.today{color:#c7d2fe;font-weight:600}
+  .mm-grid .d.sel{background:rgba(99,102,241,.28);color:#e0e7ff;box-shadow:inset 0 0 0 1px rgba(129,140,248,.4)}
+  .cat-line{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(139,147,167,.75);padding:0 4px;cursor:pointer}
+  .cat-line .sw{width:8px;height:8px;border-radius:50%}
+
+  /* ---------- 主区 ---------- */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .ctxbar{
+    height:46px;flex:0 0 46px;display:flex;align-items:center;gap:10px;padding:0 14px;
+    border-bottom:1px solid var(--line-2);
+  }
+  .ctxbar .title{font-size:13px;font-weight:600}
+  .ctxbar .grow{flex:1}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:9px;
+    background:var(--panel);color:var(--muted);font-size:11.5px;padding:4px 9px;cursor:pointer;transition:.15s;
+  }
+  .chip:hover{color:var(--fg);background:var(--panel-2)}
+  .chip.on{border-color:rgba(129,140,248,.45);background:var(--accent-2);color:#c7d2fe}
+  .chip.solid{background:rgba(99,102,241,.85);border-color:transparent;color:#fff}
+  .icon-btn{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+  .icon-btn:hover{color:var(--fg);background:var(--panel-2)}
+  .icon-btn.on{border-color:rgba(129,140,248,.45);background:var(--accent-2);color:#c7d2fe}
+
+  .views{flex:1;min-height:0;overflow:hidden;padding:14px}
+  .view{display:none;height:100%}
+  .view.on{display:flex;flex-direction:column;min-height:0}
+  .panel{
+    flex:1;min-height:0;border:1px solid var(--line-2);border-radius:var(--radius);
+    background:var(--panel);overflow:hidden;display:flex;flex-direction:column;
+  }
+
+  /* 周视图 */
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:12px;overflow:auto}
+  .day{border:1px solid var(--line-2);border-radius:12px;padding:8px;min-height:120px;display:flex;flex-direction:column;gap:6px}
+  .day .h{font-size:11px;color:var(--muted);display:flex;justify-content:space-between}
+  .day.now{border-color:rgba(129,140,248,.35);background:rgba(129,140,248,.06)}
+  .ev{border-radius:8px;padding:4px 6px;font-size:10.5px;line-height:1.35;cursor:pointer}
+  .ev.i{background:rgba(99,102,241,.22);border-left:2px solid #818cf8;color:#e0e7ff}
+  .ev.g{background:rgba(52,211,153,.16);border-left:2px solid #34d399;color:#d1fae5}
+  .ev.a{background:rgba(251,191,36,.16);border-left:2px solid #fbbf24;color:#fef3c7}
+
+  /* 求职表 */
+  .table{padding:4px 0}
+  .tr{display:grid;grid-template-columns:1.4fr 1.6fr .9fr .8fr 60px;gap:8px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.045);font-size:12px;align-items:center}
+  .tr.th{color:var(--muted);font-size:11px;border-bottom:1px solid var(--line)}
+  .tr:hover:not(.th){background:rgba(255,255,255,.03)}
+  .pill{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:2px 8px;font-size:10.5px;border:1px solid transparent}
+  .pill i{width:5px;height:5px;border-radius:50%;display:block}
+
+  /* 邮箱三栏 */
+  .mail{display:flex;height:100%;min-height:0}
+  .mail .col{border-right:1px solid var(--line-2);display:flex;flex-direction:column;min-height:0}
+  .mail .c1{flex:0 0 168px}
+  .mail .c2{flex:0 0 270px}
+  .mail .c3{flex:1;min-width:0}
+  .mail .col-h{padding:8px 10px;border-bottom:1px solid var(--line-2);font-size:11px;color:var(--muted);display:flex;justify-content:space-between}
+  .mail .list{overflow:auto;flex:1;min-height:0}
+  .mrow{display:flex;gap:8px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;font-size:11.5px}
+  .mrow:hover{background:rgba(255,255,255,.035)}
+  .mrow.on{background:rgba(129,140,248,.1)}
+  .avatar{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:9px;color:#fff;flex:0 0 22px}
+  .msg{padding:10px 12px;overflow:auto}
+
+  /* 双栏分屏（方案 D） */
+  .split{display:none;gap:10px;flex:1;min-height:0}
+  body[data-variant="d"] .split{display:flex}
+  body[data-variant="d"] .views>.view{display:none!important}
+  .split .left{flex:0 0 340px;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--panel);overflow:hidden;display:flex;flex-direction:column}
+  .split .right{flex:1;min-width:0;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--panel);overflow:hidden;display:flex;flex-direction:column}
+
+  /* ---------- AI 聊天：常驻 / 抽屉 ---------- */
+  .chat{
+    width:320px;flex:0 0 320px;display:flex;flex-direction:column;gap:0;
+    border-left:1px solid var(--line-2);background:rgba(255,255,255,.02);
+  }
+  .chat-h{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line-2);font-size:12px}
+  .chat-body{flex:1;min-height:0;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+  .bubble{max-width:88%;padding:8px 11px;border-radius:14px;font-size:12px;line-height:1.55}
+  .bubble.me{align-self:flex-end;background:rgba(99,102,241,.28);border-bottom-right-radius:6px}
+  .bubble.ai{align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid var(--line-2);border-bottom-left-radius:6px}
+  .toolrow{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);padding:4px 6px;border-radius:8px;border:1px solid var(--line-2)}
+  .chat-input{padding:10px 12px;border-top:1px solid var(--line-2)}
+  .chat-input .box{border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.035);padding:8px 10px;color:var(--muted);font-size:12px}
+
+  /* 方案 C：抽屉浮层 */
+  body[data-variant="c"] .chat{
+    position:absolute;right:12px;top:12px;bottom:12px;width:340px;border-radius:16px;
+    border:1px solid var(--line);background:rgba(12,15,22,.92);backdrop-filter:blur(18px);
+    box-shadow:0 20px 50px rgba(0,0,0,.55);z-index:20;
+  }
+  body[data-variant="c"] .frame{position:relative}
+  body[data-variant="c"] .chat[hidden]{display:none}
+  body[data-variant="a"] .chat{width:360px;flex:0 0 360px}
+
+  /* 方案 A：侧栏卡片 + 顶部段落控件 */
+  body[data-variant="a"] .side.card-style .nav-item{border-radius:16px}
+  body[data-variant="a"] .ctxbar .seg-top{display:flex}
+  .seg-top{display:none;gap:2px;padding:3px;border:1px solid var(--line);border-radius:11px;background:var(--panel)}
+
+  /* 方案 B/C/D 的 rail 显示规则 */
+  body[data-variant="c"] .rail,body[data-variant="d"] .rail{display:flex}
+  body[data-variant="c"] .side,body[data-variant="d"] .side{display:none}
+  body[data-variant="a"] .group-label{display:none}
+</style>
+</head>
+<body data-variant="b">
+
+<header class="stage-bar">
+  <strong>RiliAgent · 布局原型</strong>
+  <div class="seg" id="tabs">
+    <button data-v="a">A · 现状（改造前）</button>
+    <button data-v="b">B · 单入口 + Context Bar</button>
+    <button data-v="c">C · 图标栏 + AI 抽屉</button>
+    <button data-v="d">D · 双栏分屏</button>
+  </div>
+  <span class="hint" id="hint"></span>
+</header>
+
+<div class="window">
+  <div class="titlebar">
+    <span class="dot"></span>
+    <span>RiliAgent</span>
+    <span class="win-controls"><span>—</span><span>□</span><span>✕</span></span>
+  </div>
+
+  <div class="frame">
+    <!-- 图标栏（C/D） -->
+    <nav class="rail" id="rail">
+      <button class="on" data-nav="calendar" title="日历">📅</button>
+      <button data-nav="jobs" title="求职监控">💼</button>
+      <button data-nav="scout" title="校招信息库">📡</button>
+      <button data-nav="todo" title="待办">✅</button>
+      <button data-nav="mail" title="邮箱">✉️</button>
+      <button data-nav="kb" title="知识库">📚</button>
+      <div class="grow"></div>
+      <button title="设置">⚙️</button>
+    </nav>
+
+    <!-- 侧边栏（A/B） -->
+    <aside class="side" id="side">
+      <div id="miniWrap">
+        <div class="minimonth">
+          <div class="mm-head"><span>‹</span><span>2026年10月</span><span>›</span></div>
+          <div class="mm-grid">
+            <span class="w">一</span><span class="w">二</span><span class="w">三</span><span class="w">四</span><span class="w">五</span><span class="w">六</span><span class="w">日</span>
+            <span class="d">28</span><span class="d">29</span><span class="d">30</span><span class="d">1</span><span class="d">2</span><span class="d">3</span><span class="d">4</span>
+            <span class="d">5</span><span class="d">6</span><span class="d">7</span><span class="d">8</span><span class="d">9</span><span class="d">10</span><span class="d">11</span>
+            <span class="d">12</span><span class="d">13</span><span class="d">14</span><span class="d">15</span><span class="d">16</span><span class="d">17</span><span class="d">18</span>
+            <span class="d">19</span><span class="d">20</span><span class="d">21</span><span class="d">22</span><span class="d">23</span><span class="d">24</span><span class="d sel">25</span>
+            <span class="d">26</span><span class="d">27</span><span class="d">28</span><span class="d">29</span><span class="d">30</span><span class="d">31</span><span class="d">1</span>
+          </div>
+        </div>
+        <div class="cat-line" style="margin-top:8px">
+          <span class="sw" style="background:#818cf8"></span>
+          <span class="sw" style="background:#34d399"></span>
+          <span class="sw" style="background:#fbbf24"></span>
+          类别
+          <span style="margin-left:auto;opacity:.6">工作 · 面试 · 学习</span>
+        </div>
+      </div>
+
+      <div>
+        <p class="group-label">工作台</p>
+        <div id="sideNav">
+          <button class="nav-item on" data-nav="calendar"><span class="ic">📅</span>日历</button>
+          <button class="nav-item" data-nav="jobs"><span class="ic">💼</span>求职监控</button>
+          <button class="nav-item" data-nav="scout"><span class="ic">📡</span>校招信息库</button>
+          <button class="nav-item" data-nav="todo"><span class="ic">✅</span>待办</button>
+        </div>
+      </div>
+
+      <div>
+        <p class="group-label">工具</p>
+        <button class="nav-item" data-nav="mail"><span class="ic">✉️</span>邮箱<span class="badge">12</span></button>
+        <button class="nav-item" data-nav="kb"><span class="ic">📚</span>知识库</button>
+      </div>
+
+      <div style="flex:1"></div>
+      <button class="nav-item" id="settingsBtn"><span class="ic">⚙️</span>设置</button>
+    </aside>
+
+    <!-- 主区 -->
+    <main class="main">
+      <div class="ctxbar" id="ctxbar">
+        <div class="seg-top" id="segTop">
+          <button class="chip on">周</button><button class="chip">月</button>
+        </div>
+        <span class="title" id="ctxTitle">日历</span>
+        <span class="chip" id="cPrev">‹</span>
+        <span class="chip" id="cToday">今天</span>
+        <span class="chip" id="cNext">›</span>
+        <span style="color:var(--muted);font-size:12px" id="ctxDate">10月23日 – 10月29日</span>
+        <span class="grow"></span>
+        <!-- 视图相关动作（随视图变化） -->
+        <span id="ctxActions">
+          <span class="chip solid">+ 新建事件</span>
+        </span>
+        <button class="icon-btn" id="chatToggle" title="AI 助手">💬</button>
+        <button class="icon-btn" title="主题">🎨</button>
+        <span class="chip" style="font-size:11px">⌘K</span>
+      </div>
+
+      <div class="views">
+        <!-- 日历 -->
+        <section class="view on" data-view="calendar">
+          <div class="panel">
+            <div class="week">
+              <div class="day"><div class="h"><span>周一 23</span></div>
+                <div class="ev i">09:00 站会</div><div class="ev g">14:00 面试复盘</div></div>
+              <div class="day now"><div class="h"><span>周二 24</span><span style="color:#c7d2fe">今天</span></div>
+                <div class="ev i">10:00 需求评审</div><div class="ev a">16:30 跑步</div></div>
+              <div class="day"><div class="h"><span>周三 25</span></div>
+                <div class="ev g">11:00 一面（字节）</div></div>
+              <div class="day"><div class="h"><span>周四 26</span></div>
+                <div class="ev i">15:00 1:1</div></div>
+              <div class="day"><div class="h"><span>周五 27</span></div>
+                <div class="ev a">20:00 投递截止</div></div>
+              <div class="day"><div class="h"><span>周六 28</span></div></div>
+              <div class="day"><div class="h"><span>周日 29</span></div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 求职 -->
+        <section class="view" data-view="jobs">
+          <div class="panel">
+            <div class="table">
+              <div class="tr th"><span>公司</span><span>职位</span><span>状态</span><span>投递日期</span><span>操作</span></div>
+              <div class="tr"><span>字节跳动</span><span>后端开发（校招）</span>
+                <span><span class="pill" style="background:rgba(129,140,248,.18);color:#c7d2fe"><i style="background:#818cf8"></i>面试中</span></span>
+                <span>10-21</span><span style="color:var(--muted)">…</span></div>
+              <div class="tr"><span>腾讯</span><span>客户端开发</span>
+                <span><span class="pill" style="background:rgba(52,211,153,.16);color:#d1fae5"><i style="background:#34d399"></i>已投递</span></span>
+                <span>10-19</span><span style="color:var(--muted)">…</span></div>
+              <div class="tr"><span>阿里云</span><span>测试开发</span>
+                <span><span class="pill" style="background:rgba(251,191,36,.16);color:#fef3c7"><i style="background:#fbbf24"></i>笔试</span></span>
+                <span>10-15</span><span style="color:var(--muted)">…</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 招聘（简版） -->
+        <section class="view" data-view="scout">
+          <div class="panel" style="padding:14px;gap:8px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+              <span class="chip">批次 2027秋</span><span class="chip on">还能投递</span><span class="chip">仅看重点</span>
+              <span class="chip" style="margin-left:auto">抓取并入库</span>
+            </div>
+            <div class="tr" style="grid-template-columns:1.6fr 2fr 1fr .8fr"><span>★ 字节跳动</span><span>后端 / 算法</span><span>北京 · 上海</span><span>截止 11-09</span></div>
+            <div class="tr" style="grid-template-columns:1.6fr 2fr 1fr .8fr"><span>美团</span><span>数据开发</span><span>北京</span><span>招满为止</span></div>
+          </div>
+        </section>
+
+        <!-- 待办 -->
+        <section class="view" data-view="todo">
+          <div class="panel" style="padding:14px;gap:8px">
+            <div class="tr" style="grid-template-columns:20px 1fr 100px"><span>☐</span><span>准备字节一面（项目深挖）</span><span style="color:var(--muted)">今天</span></div>
+            <div class="tr" style="grid-template-columns:20px 1fr 100px"><span>☑</span><span>投递腾讯客户端</span><span style="color:var(--muted)">昨天</span></div>
+          </div>
+        </section>
+
+        <!-- 邮箱（页面化后的三栏） -->
+        <section class="view" data-view="mail">
+          <div class="panel">
+            <div class="mail">
+              <div class="col c1">
+                <div class="col-h"><span>账号 / 文件夹</span><span>⟳</span></div>
+                <div class="list">
+                  <div class="mrow"><span class="avatar" style="background:hsl(210 45% 42%)">16</span><span>163 主邮箱</span></div>
+                  <div class="mrow" style="padding-left:26px">收件箱 <span class="badge" style="margin-left:auto">12</span></div>
+                  <div class="mrow" style="padding-left:26px">已发送</div>
+                  <div class="mrow" style="padding-left:26px">垃圾邮件</div>
+                </div>
+              </div>
+              <div class="col c2">
+                <div class="col-h"><span>163 · 收件箱</span><span>56 会话</span></div>
+                <div class="list">
+                  <div class="mrow on"><span class="avatar" style="background:hsl(280 45% 42%)">字</span>
+                    <div style="min-width:0"><div style="font-weight:600">字节跳动 · 一面通知</div>
+                      <div style="color:var(--muted);font-size:11px">请于周三 11:00 参加…</div></div></div>
+                  <div class="mrow"><span class="avatar" style="background:hsl(30 45% 42%)">腾</span>
+                    <div style="min-width:0"><div>腾讯 · 笔试邀请</div>
+                      <div style="color:var(--muted);font-size:11px">测评链接已发送…</div></div></div>
+                </div>
+              </div>
+              <div class="col c3">
+                <div class="col-h"><span>字节跳动 · 一面通知</span><span>AI 识别</span></div>
+                <div class="msg">
+                  <div class="bubble ai" style="max-width:100%">
+                    你好，你的简历已通过筛选，一面安排在本周三 11:00，会议链接见下…
+                    <div style="margin-top:8px;color:#c7d2fe;font-size:11px">✦ 识别到：面试 · 周三 11:00 · 字节跳动</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 知识库 -->
+        <section class="view" data-view="kb">
+          <div class="panel" style="padding:14px">
+            <div style="color:var(--muted);font-size:12px">知识库（页面化示意）：左侧文档树 · 右侧 Markdown 编辑 / 预览</div>
+          </div>
+        </section>
+      </div>
+
+      <!-- 双栏分屏（方案 D 专用） -->
+      <div class="split" id="split">
+        <div class="left">
+          <div class="col-h">会话列表</div>
+          <div class="list">
+            <div class="mrow on"><span class="avatar" style="background:hsl(280 45% 42%)">字</span><div>字节跳动 · 一面通知</div></div>
+            <div class="mrow"><span class="avatar" style="background:hsl(30 45% 42%)">腾</span><div>腾讯 · 笔试邀请</div></div>
+            <div class="mrow"><span class="avatar" style="background:hsl(200 45% 42%)">阿</span><div>阿里云 · 测评提醒</div></div>
+          </div>
+        </div>
+        <div class="right">
+          <div class="col-h">字节跳动 · 一面通知</div>
+          <div class="msg"><div class="bubble ai">一面安排在本周三 11:00，会议链接见下…</div></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- AI 面板 -->
+    <aside class="chat" id="chat">
+      <div class="chat-h">✦ AI 助手 <span style="margin-left:auto;color:var(--muted)">历史 · 新建 · ✕</span></div>
+      <div class="chat-body">
+        <div class="bubble me">明天下午 3 点和老王开会 1 小时</div>
+        <div class="toolrow">🧠 思考过程 <span style="opacity:.6">…</span></div>
+        <div class="toolrow">🔧 calendar_create <span style="opacity:.6">正在创建…</span></div>
+        <div class="bubble ai">已创建：明天 15:00–16:00「和老王开会」，需要我顺便加上会议链接吗？</div>
+      </div>
+      <div class="chat-input"><div class="box">问点什么，或直接说安排日程…</div></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  const HINTS = {
+    a: "改造前：顶部分段控件 + 侧栏卡片 + 右键菜单 = 三套入口；小月历与类别常驻；AI 固定占 360px；邮箱/知识库是模态浮层。",
+    b: "已落地：导航只留侧边栏（工作台 / 工具 / 设置）；顶栏只放当前视图相关控件；小月历只在日历视图出现。",
+    c: "提案：侧栏换成 56px 图标栏，把宽度还给内容；AI 改成右侧抽屉（浮层、默认收起），主区宽度不再跳动。",
+    d: "提案：左列表 + 右详情（列表宽度固定 340px），适合邮件/会话这类“选一条看一条”的浏览；代价是牺牲一部分日历视野。"
+  };
+
+  const state = { variant: "b", view: "calendar", chatOpen: true };
+
+  function render() {
+    document.body.dataset.variant = state.variant;
+    document.getElementById("hint").textContent = HINTS[state.variant];
+
+    // tabs
+    document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.v === state.variant));
+
+    // 视图切换
+    document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.dataset.view === state.view));
+    document.querySelectorAll("[data-nav]").forEach(n => n.classList.toggle("on", n.dataset.nav === state.view));
+
+    // A 方案：侧栏用"卡片"观感（改造前长这样）
+    document.getElementById("side").classList.toggle("card-style", state.variant === "a");
+
+    // 侧栏小月历/类别：仅日历视图
+    document.getElementById("miniWrap").style.display = state.view === "calendar" ? "" : "none";
+
+    // Context Bar：按视图换标题与动作
+    const titles = { calendar: "日历", jobs: "求职监控", scout: "校招信息库", todo: "待办", mail: "邮箱", kb: "知识库" };
+    const actions = {
+      calendar: '<span class="chip solid">+ 新建事件</span>',
+      jobs: '<span class="chip">+ 添加投递</span><span class="chip">管理状态</span>',
+      scout: '<span class="chip solid">抓取并入库</span><span class="chip">筛选</span>',
+      todo: '<span class="chip solid">+ 新建待办</span>',
+      mail: '<span class="chip">全部同步</span><span class="chip solid">+ 添加邮箱</span>',
+      kb: '<span class="chip">立即索引</span>'
+    };
+    document.getElementById("ctxTitle").textContent = titles[state.view] || "";
+    document.getElementById("ctxActions").innerHTML = actions[state.view] || "";
+
+    // 日期导航只在日历视图显示；A 方案的"周/月"分段控件也只属于 A
+    const calOnly = state.view === "calendar";
+    ["cPrev", "cToday", "cNext", "ctxDate"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = calOnly ? "" : "none";
+    });
+    document.getElementById("segTop").style.display =
+      state.variant === "a" && calOnly ? "" : "none";
+
+    // AI：A/B 常驻；C/D 为抽屉（默认收起，点右上角 💬 浮出，不挤压主区）
+    const drawerMode = state.variant === "c" || state.variant === "d";
+    const chat = document.getElementById("chat");
+    chat.hidden = drawerMode ? !state.chatOpen : false;
+    const toggle = document.getElementById("chatToggle");
+    toggle.style.display = drawerMode ? "" : "none";
+    toggle.classList.toggle("on", drawerMode && state.chatOpen);
+
+    // D 方案：主区换成双栏
+    document.getElementById("split").style.display = state.variant === "d" ? "flex" : "none";
+  }
+
+  document.getElementById("tabs").addEventListener("click", e => {
+    const b = e.target.closest("button[data-v]");
+    if (!b) return;
+    state.variant = b.dataset.v;
+    state.chatOpen = state.variant !== "c";
+    render();
+  });
+
+  document.addEventListener("click", e => {
+    const nav = e.target.closest("[data-nav]");
+    if (nav) { state.view = nav.dataset.nav; render(); return; }
+    if (e.target.closest("#chatToggle")) { state.chatOpen = !state.chatOpen; render(); }
+  });
+
+  render();
+</script>
+</body>
+</html>

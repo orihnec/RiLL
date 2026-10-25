@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { ChatMsg, ToolCallView } from "../kernel/agent/types";
+import type { ChatAttachment } from "../lib/attachment";
 import { isLlmConfigured, runRealChat, abortRealChat } from "../kernel/agent/runtime";
 import { runMockChat } from "../kernel/agent/mock";
 import {
@@ -25,10 +26,15 @@ interface ChatState {
   error: string | null;
   searchQuery: string;
   searchHits: ChatSearchHit[] | null;
+  /** 待发送的附件（随下一条消息发出后清空） */
+  attachments: ChatAttachment[];
 
   setOpen: (open: boolean) => void;
   setView: (view: "chat" | "history") => void;
   setSearchQuery: (q: string) => void;
+  addAttachment: (a: ChatAttachment) => void;
+  removeAttachment: (index: number) => void;
+  clearAttachments: () => void;
   /** 启动：加载会话列表并恢复最近活跃会话，返回会话 id（失败返回 null） */
   init: () => Promise<string | null>;
   /** 新建对话（当前对话消息已实时落库，无需迁移） */
@@ -56,10 +62,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
   error: null,
   searchQuery: "",
   searchHits: null,
+  attachments: [],
 
   setOpen: (open) => set({ open }),
   setView: (view) => set({ view }),
   setSearchQuery: (searchQuery) => set({ searchQuery }),
+  addAttachment: (a) => set((s) => ({ attachments: [...s.attachments, a] })),
+  removeAttachment: (index) =>
+    set((s) => ({ attachments: s.attachments.filter((_, i) => i !== index) })),
+  clearAttachments: () => set({ attachments: [] }),
 
   init: async () => {
     try {
@@ -129,12 +140,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
   stop: () => {
     abortRealChat();
     cancelToken.current = true;
-    set({ status: "idle" });
+    // 中止时把仍显示"执行中"的工具收尾为已停止，避免卡片永远卡在 running
+    set((s) => ({
+      status: "idle",
+      messages: s.messages.map((m) => ({
+        ...m,
+        toolCalls: m.toolCalls.map((tc) =>
+          tc.status === "running" ? { ...tc, status: "error", result: "已停止" } : tc,
+        ),
+      })),
+    }));
   },
 
   send: (text) => {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed && get().attachments.length === 0) return;
     if (get().status === "streaming") {
       // 不静默丢弃：给出可见提示
       set({ error: "上一条消息还在生成中，请等待完成或点击停止" });
@@ -151,13 +171,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
 
     cancelToken.current = false;
+    // 附件随消息发送：消息里存附件（AI 上下文完整可见），content 只存用户文字
+    const attachments = get().attachments;
     const userMsg: ChatMsg = {
       id: crypto.randomUUID(),
       role: "user",
       content: trimmed,
       toolCalls: [],
+      attachments: attachments.length ? attachments : undefined,
     };
-    set((s) => ({ messages: [...s.messages, userMsg], status: "streaming", error: null }));
+    set((s) => ({
+      messages: [...s.messages, userMsg],
+      status: "streaming",
+      error: null,
+      attachments: [],
+    }));
     void saveChatMessage(userMsg, sessionId).catch(console.warn);
 
     let assistantId = "";
@@ -211,7 +239,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const run = isLlmConfigured()
       ? runRealChat(events, get().messages)
       : runMockChat(trimmed, events, () => cancelToken.current);
-    console.log("[chat] send →", isLlmConfigured() ? "real" : "mock", "| text:", trimmed.slice(0, 40));
 
     void run.catch((e) => {
       const msg = String(e?.message ?? e);

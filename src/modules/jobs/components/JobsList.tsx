@@ -1,0 +1,151 @@
+import type { MouseEvent as ReactMouseEvent } from "react";
+import { ArrowDown, ArrowUp, ExternalLink, Loader2, Search, Trash2 } from "lucide-react";
+import { cn } from "../../../lib/utils";
+import type { JobApplication } from "../service";
+import type { JobStatusDef } from "../statusStore";
+import type { SortKey } from "../format";
+import { formatAppliedAt } from "../format";
+import { Highlight } from "./Highlight";
+import { StatusCell } from "./StatusCell";
+
+/**
+ * 投递列表：**单行高密度**（一行一份投递，hover 才出操作）。
+ *
+ * 比之前的 7 列表格窄（公司/职位按比例、状态与日期定宽）、比两行卡片密，
+ * 一屏能看十几行；备注收成 tooltip + 编辑里可改。
+ */
+export function JobsList({
+  visible,
+  terms,
+  statuses,
+  sort,
+  onToggleSort,
+  confirmDel,
+  linkState,
+  onChangeStatus,
+  onOpenLink,
+  onFillLink,
+  onEdit,
+  onDelete,
+  onRowMenu,
+}: {
+  visible: JobApplication[];
+  terms: string[];
+  statuses: JobStatusDef[];
+  sort: { key: SortKey; dir: "asc" | "desc" };
+  onToggleSort: (k: SortKey) => void;
+  confirmDel: string | null;
+  linkState: Record<string, "busy" | "fail">;
+  onChangeStatus: (id: string, status: string) => void;
+  onOpenLink: (url: string) => void;
+  onFillLink: (j: JobApplication) => void;
+  onEdit: (j: JobApplication) => void;
+  onDelete: (id: string) => void;
+  onRowMenu: (e: ReactMouseEvent, j: JobApplication) => void;
+}) {
+  return (
+    <div className="flex flex-col">
+      {/* 表头：窄、浅、只留排序入口 */}
+      <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-white/6 px-3 pb-1 pt-0.5 text-[10px] text-muted-foreground/45 backdrop-blur">
+        <span className="w-[30%] shrink-0">公司</span>
+        <span className="min-w-0 flex-1">职位</span>
+        <span className="w-[74px] shrink-0">状态</span>
+        <button
+          onClick={() => onToggleSort("applied_at")}
+          className="flex w-[62px] shrink-0 items-center gap-0.5 transition hover:text-foreground"
+          title="按投递日期排序"
+        >
+          投递
+          {sort.key === "applied_at" && sort.dir === "asc" ? (
+            <ArrowUp className="size-2.5" />
+          ) : (
+            <ArrowDown className={cn("size-2.5", sort.key !== "applied_at" && "opacity-0")} />
+          )}
+        </button>
+        <span className="hidden min-w-0 flex-1 xl:block">备注</span>
+        <span className="w-[64px] shrink-0 text-right">操作</span>
+      </div>
+
+      {visible.map((j) => (
+        <div
+          key={j.id}
+          onClick={() => onEdit(j)}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onRowMenu(e, j);
+          }}
+          title={j.notes ? `${j.position}\n${j.notes}` : j.position}
+          className="group flex h-9 cursor-pointer items-center gap-2 border-b border-white/4 px-3 transition hover:bg-white/5"
+        >
+          <span className="w-[30%] shrink-0 truncate text-[12.5px] font-medium">
+            <Highlight text={j.company} terms={terms} />
+          </span>
+          <span className="min-w-0 flex-1 truncate text-[11.5px] text-foreground/70">
+            <Highlight text={j.position} terms={terms} />
+          </span>
+          <span className="w-[74px] shrink-0">
+            <StatusCell job={j} statuses={statuses} onChange={(sid) => onChangeStatus(j.id, sid)} />
+          </span>
+          <span className="w-[62px] shrink-0 text-[10px] tabular-nums text-muted-foreground/55">
+            {formatAppliedAt(j.applied_at)}
+          </span>
+          <span className="hidden min-w-0 flex-1 truncate text-[10.5px] text-muted-foreground/40 xl:block">
+            {j.notes ?? ""}
+          </span>
+          <div className="flex w-[64px] shrink-0 items-center justify-end gap-0.5">
+            {j.url ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenLink(j.url as string);
+                }}
+                title={`打开：${j.url}`}
+                className="rounded-md p-1 text-indigo-300/70 transition hover:bg-white/10 hover:text-indigo-300"
+              >
+                <ExternalLink className="size-3.5" />
+              </button>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFillLink(j);
+                }}
+                title="搜索校招官网 / 公众号，选一个填入"
+                className={cn(
+                  "rounded-md p-1 transition",
+                  linkState[j.id] === "busy"
+                    ? "text-amber-300"
+                    : linkState[j.id] === "fail"
+                      ? "text-red-300"
+                      : "text-muted-foreground/35 hover:bg-white/10 hover:text-indigo-300",
+                )}
+              >
+                {linkState[j.id] === "busy" ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Search className="size-3.5" />
+                )}
+              </button>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(j.id);
+              }}
+              title="删除"
+              className={cn(
+                "rounded-md p-1 transition",
+                confirmDel === j.id
+                  ? "bg-red-500/20 px-1 text-red-300"
+                  : "text-muted-foreground/35 opacity-0 group-hover:opacity-100 hover:bg-white/10 hover:text-red-300",
+              )}
+            >
+              {confirmDel === j.id ? <span className="text-[10px]">确认？</span> : <Trash2 className="size-3.5" />}
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}

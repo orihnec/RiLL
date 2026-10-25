@@ -41,10 +41,12 @@ export async function initDb(migrations: Migration[]): Promise<Database> {
         await database.execute(statement);
       }
     }
+    // OR IGNORE：并发实例同时迁移时防 UNIQUE 冲突（另一实例已记账则静默跳过）
     await database.execute(
-      "INSERT INTO schema_migrations (id, applied_at) VALUES ($1, $2)",
+      "INSERT OR IGNORE INTO schema_migrations (id, applied_at) VALUES ($1, $2)",
       [m.id, Date.now()],
     );
+    applied.add(m.id); // 防御迁移数组内出现重复 id
     console.info(`[db] applied migration ${m.id}`);
   }
 

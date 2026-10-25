@@ -30,18 +30,30 @@ npm run build         # 前端类型检查 + 构建
 
 ```
 src/
-├─ kernel/        # 内核：db 迁移调度 / module 加载器 / agent 注册表 / rag 源 / 命令
-├─ modules/
-│  ├─ calendar/   # 日历模块：schema / service（CRUD+occurence 展开）/ 组件
-│  └─ knowledge/  # 知识库模块（M3）
+├─ main.tsx       # 启动：迁移 → 设置 → 命令 → 渲染 → 后台服务
 ├─ modules.ts     # ★ 全应用唯一模块清单
-├─ app/           # 外壳：布局 / TopBar / Sidebar
-├─ stores/        # zustand 分 store（calendar / settings / kb / chat）
-└─ lib/           # 时间、颜色、通用工具
+├─ shell/         # 外壳：App / TitleBar / TopBar / Sidebar / MiniMonth / 弹层栈
+│  ├─ workbench.ts  # ★ 工作台与面板注册表（顶部/侧栏/右键/Cmd+K 的唯一入口来源）
+│  └─ commands.ts   # Cmd+K 命令（从注册表派生）
+├─ kernel/        # 内核：db 迁移调度 / module 加载器 / agent 运行时 / rag / 搜索 / 提醒
+├─ modules/       # 业务模块（calendar / jobs / scout / todo / knowledge / mail / theme / web）
+├─ stores/        # 跨模块状态（ui / theme / settings / chat / category / kb / mail / scout）
+├─ components/    # 通用原语（ui/）+ Markdown
+└─ lib/           # 时间、颜色、主题、URL、附件、错误文案
 ```
 
 ## 维护铁律
 
-1. `components/` 只负责渲染，数据来自 store，不直接调 core/kernel；
-2. 所有 SQL 只出现在各模块 `schema.sql` 与迁移文件中；
-3. 新增 Agent 能力 = 只在对应模块 `tools.ts` 加一个工具对象。
+1. 页面（`views/`）只组合，**不取数、不写业务分支**；数据走 `store` / hook；
+2. `components/` 只负责渲染，props 进出，不 import service；
+3. 所有 SQL 只出现在各模块 `schema.sql` 与迁移文件中，迁移**只追加、不重排**；
+4. 新增 Agent 能力 = 对应模块 `tools.ts` 加一个工具对象；
+5. 新增入口（页面/弹层/命令）只改 `shell/workbench.ts`，不在 TopBar / Sidebar 里手写按钮。
+
+## 文档
+
+- [docs/DEV-GUIDE.md](docs/DEV-GUIDE.md) —— **二次开发规范**（新功能放哪、模板、自检清单）
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) —— 结构梳理、分层理由、精简方案
+- [docs/REFACTOR-MAP.md](docs/REFACTOR-MAP.md) —— 文件级拆解图与进度
+- [docs/REFACTOR-REPORT.md](docs/REFACTOR-REPORT.md) —— **重构报告**（前后对比、验证证据、遗留项）
+- [CONTEXT.md](CONTEXT.md) —— 进度、已拍板决策、技术地雷（改代码前必读）

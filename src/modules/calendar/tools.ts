@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Tool } from "../../kernel/agent/types";
 import * as service from "./service";
+import { WEEKDAY_LABELS, createHabit, habitTimeLabel, listHabits } from "./habits";
 import { categoryOf } from "../../lib/colors";
 import { DAY_MS, toLocalIso, fromLocalIso, startOfToday } from "../../lib/time";
 
@@ -23,12 +24,18 @@ export const calendarTools: Record<string, Tool> = {
       const end = args.end ? fromLocalIso(String(args.end)) : start + 7 * DAY_MS;
       const occs = await service.listOccurrences(start, end);
       if (occs.length === 0) return "该范围内没有日程。";
-      return occs
+      // 上限 60 条：一整月的密集日程会撑爆上下文，剩下的让模型缩小范围再查
+      const MAX = 60;
+      const shown = occs.slice(0, MAX);
+      const body = shown
         .map(
           (o) =>
             `- ${toLocalIso(o.startAt)}–${toLocalIso(o.endAt)} ${o.title}（${categoryOf(o.category).name}，id=${o.masterId}${o.isOccurrence ? `@${o.originalStart}` : ""}）`,
         )
         .join("\n");
+      return occs.length > MAX
+        ? `${body}\n…另有 ${occs.length - MAX} 条未列出（范围太大，建议按天/按周查）`
+        : body;
     },
   },
 
@@ -111,6 +118,51 @@ export const calendarTools: Record<string, Tool> = {
       };
       await service.deleteEvent(target);
       return `已删除 ${args.id}${args.occurrenceStartIso ? "（该次实例）" : "（整个系列）"}。`;
+    },
+  },
+
+  habit_list: {
+    name: "habit_list",
+    description:
+      "列出用户的习惯（每天/每周固定的安排，如晨跑、刷题）。用于回答'我有哪些固定安排''我每天几点看书'。",
+    parameters: z.object({}),
+    execute: async () => {
+      const list = await listHabits();
+      if (list.length === 0) return "还没有设置习惯。";
+      return list
+        .map(
+          (h) =>
+            `- ${habitTimeLabel(h.startMinutes)} ${h.title}（${
+              h.days.length === 7 ? "每天" : h.days.map((d) => WEEKDAY_LABELS[d]).join("")
+            }，${h.durationMinutes} 分钟，id=${h.id}）`,
+        )
+        .join("\n");
+    },
+  },
+
+  habit_create: {
+    name: "habit_create",
+    description:
+      "新建习惯（每天/每周固定安排）。创建类可直接执行。days：0=周日 … 6=周六，缺省周一到周五。",
+    parameters: z.object({
+      title: z.string().describe("习惯名，如「晨跑」「刷题」"),
+      time: z.string().describe("每天开始时间 HH:mm"),
+      durationMinutes: z.number().int().min(5).max(480).optional(),
+      days: z.array(z.number().int().min(0).max(6)).optional().describe("星期集合，缺省 1-5"),
+      category: z.string().optional(),
+    }),
+    execute: async (args) => {
+      const days = (args.days as number[] | undefined) ?? [1, 2, 3, 4, 5];
+      await createHabit({
+        title: String(args.title),
+        time: String(args.time),
+        durationMinutes: Number(args.durationMinutes ?? 60),
+        days,
+        category: args.category ? String(args.category) : "default",
+      });
+      return `已创建习惯「${args.title}」：${args.time} 起，每周 ${
+        days.length === 7 ? "每天" : days.map((d) => WEEKDAY_LABELS[d]).join("")
+      }。已出现在日历里。`;
     },
   },
 

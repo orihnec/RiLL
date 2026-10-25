@@ -219,6 +219,18 @@ function expandRecurring(
 }
 
 /** 查询区间内的所有日程（含重复事件展开与例外）。 */
+/**
+ * 列出所有重复事件（习惯 / 每周固定安排的管理入口用）。
+ * 习惯就是"带 RRULE 的重复事件"，不另起表。
+ */
+export async function listRecurring(): Promise<EventRow[]> {
+  const db = getDb();
+  return db.select<EventRow[]>(
+    `SELECT id, title, notes, start_at, end_at, all_day, category, rrule, created_at, updated_at, deleted_at
+     FROM events WHERE deleted_at IS NULL AND rrule IS NOT NULL ORDER BY start_at ASC`,
+  );
+}
+
 export async function listOccurrences(
   rangeStart: number,
   rangeEnd: number,
@@ -516,6 +528,22 @@ export async function deleteEvent(target: EventTarget): Promise<void> {
     "UPDATE events SET deleted_at = $2, updated_at = $2 WHERE id = $1 AND deleted_at IS NULL",
     [target.id, Date.now()],
   );
+}
+
+/** 删除类别时重分配：把 events 与 event_overrides 里该类别改为 to（默认 "default"）。 */
+export async function reassignCategory(from: string, to: string): Promise<void> {
+  const db = getDb();
+  const now = Date.now();
+  await db.execute("UPDATE events SET category = $1, updated_at = $2 WHERE category = $3", [
+    to,
+    now,
+    from,
+  ]);
+  await db.execute("UPDATE event_overrides SET category = $1, updated_at = $2 WHERE category = $3", [
+    to,
+    now,
+    from,
+  ]);
 }
 
 /* ---------------- 空闲时段 ---------------- */

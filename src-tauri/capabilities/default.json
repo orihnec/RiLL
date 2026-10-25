@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": ["main", "overview"],
   "permissions": [
     "core:default",
     "sql:default",
@@ -18,6 +18,27 @@
     "global-shortcut:default",
     "keyring:allow-get-password",
     "keyring:allow-set-password",
-    "keyring:allow-delete-password"
+    "keyring:allow-delete-password",
+    "opener:default",
+    "dialog:default",
+      "fs:allow-write-text-file",
+    "notification:default",
+    {
+      "identifier": "fs:default",
+      "description": "知识库读写（本地单用户应用，放开路径作用域）",
+      "allow": [{ "path": "**" }]
+    },
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-close",
+    "core:window:allow-start-dragging",
+    "core:window:allow-is-maximized",
+    "core:window:allow-set-always-on-top",
+    "core:window:allow-set-size",
+    "core:window:allow-set-position",
+    "core:window:allow-outer-position",
+    "core:window:allow-show",
+    "core:window:allow-hide",
+    "core:window:allow-is-visible"
   ]
 }

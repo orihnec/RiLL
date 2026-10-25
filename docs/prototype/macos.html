@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>Rill · macOS 打包效果预览</title>
+<style>
+  :root{
+    --bg:#0b0d12; --fg:#e7e9ee; --muted:#8b93a5; --line:rgba(255,255,255,.09);
+    --glass:rgba(255,255,255,.045); --indigo:#6d7cff; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:#1a1c22; color:var(--fg);
+    font:13px/1.45 "Segoe UI Variable Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column; align-items:center; gap:48px; padding:40px 24px 64px;
+  }
+  h2{font-size:13px;font-weight:600;color:#9aa2b4;margin:0 0 10px;letter-spacing:.02em}
+  .caption{font-size:11px;color:#6f7686;margin-top:10px;max-width:820px}
+
+  /* ---------- macOS 桌面 ---------- */
+  .desktop{
+    width:1120px;height:700px;border-radius:12px;overflow:hidden;position:relative;
+    background:
+      radial-gradient(900px 500px at 80% -10%, rgba(109,124,255,.25), transparent 60%),
+      radial-gradient(700px 500px at 0% 110%, rgba(56,189,248,.18), transparent 55%),
+      linear-gradient(160deg,#1b2030,#12141b 60%);
+    box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.06);
+    display:flex;flex-direction:column;
+  }
+  .menubar{
+    height:26px;display:flex;align-items:center;gap:16px;padding:0 14px;
+    font-size:11.5px;color:#e8eaf1;background:rgba(12,14,20,.55);backdrop-filter:blur(20px);
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .menubar .apple{font-size:13px;opacity:.9}
+  .menubar .right{margin-left:auto;display:flex;gap:14px;opacity:.85}
+
+  /* ---------- 窗口 ---------- */
+  .window{
+    flex:1;margin:18px 20px 22px;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;
+    background:rgba(16,18,24,.72);backdrop-filter:blur(30px) saturate(1.3);
+    box-shadow:0 24px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.07), 0 0 0 1px rgba(255,255,255,.08);
+  }
+  .titlebar{
+    height:38px;display:flex;align-items:center;gap:10px;padding:0 12px;flex:0 0 auto;
+    border-bottom:1px solid var(--line);position:relative;
+  }
+  .lights{display:flex;gap:8px;margin-right:6px}
+  .lights i{width:12px;height:12px;border-radius:50%;display:block}
+  .lights .r{background:#ff5f57} .lights .y{background:#febc2e} .lights .g{background:#28c840}
+  .brand{display:flex;align-items:center;gap:7px;opacity:.9}
+  .logo{width:18px;height:18px;border-radius:5px;background:linear-gradient(135deg,#6d7cff,#38bdf8)}
+  .brand b{font-size:11.5px;font-weight:600}
+  .aiTag{font-size:9px;padding:1px 6px;border-radius:999px;border:1px solid rgba(109,124,255,.35);color:#a9b4ff;background:rgba(109,124,255,.12)}
+  .tb-actions{margin-left:auto;display:flex;align-items:center;gap:2px}
+  .iconbtn{
+    width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    color:#9aa2b4;font-size:12px;
+  }
+  .iconbtn:hover{background:rgba(255,255,255,.09);color:#e7e9ee}
+  .iconbtn.on{background:rgba(109,124,255,.18);color:#c7cfff}
+  .kbd{font-size:10px;color:#8b93a5;padding:0 6px;height:26px;display:flex;align-items:center;gap:5px;border-radius:8px}
+
+  /* ---------- 主体 ---------- */
+  .body{flex:1;display:flex;min-height:0}
+  .rail{
+    width:52px;flex:0 0 auto;border-right:1px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;
+  }
+  .rail b{
+    width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    color:#8b93a5;font-size:13px;font-weight:400;
+  }
+  .rail b.on{background:rgba(109,124,255,.18);color:#c7cfff}
+  .rail .sp{flex:1}
+
+  .calendar{flex:1;display:flex;min-width:0}
+  .side{
+    width:190px;flex:0 0 auto;border-right:1px solid var(--line);padding:10px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .mini{border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--glass)}
+  .mini .hd{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:#9aa2b4;margin-bottom:6px}
+  .mini table{width:100%;border-collapse:collapse;font-size:9.5px;color:#8b93a5;text-align:center}
+  .mini th{font-weight:400;color:#6f7686;padding-bottom:3px}
+  .mini td{padding:2px 0;border-radius:5px}
+  .mini td.on{background:rgba(109,124,255,.85);color:#fff;font-weight:600}
+  .mini td.dim{opacity:.35}
+  .rowline{display:flex;align-items:center;gap:6px;font-size:10.5px;color:#8b93a5}
+  .rowline span:last-child{margin-left:auto;opacity:.55}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .toolbar{height:38px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line)}
+  .seg{display:flex;background:var(--glass);border:1px solid var(--line);border-radius:9px;padding:2px}
+  .seg i{font-style:normal;font-size:10.5px;padding:2px 9px;border-radius:7px;color:#8b93a5}
+  .seg i.on{background:rgba(255,255,255,.11);color:#e7e9ee}
+  .nav{font-size:10.5px;color:#8b93a5;display:flex;gap:8px;align-items:center}
+  .range{font-size:12px;font-weight:600}
+  .primary{
+    margin-left:auto;background:#6d7cff;color:#fff;font-size:10.5px;padding:5px 10px;border-radius:9px;
+    display:flex;align-items:center;gap:4px;
+  }
+
+  .grid{flex:1;display:grid;grid-template-columns:44px repeat(7,1fr);min-height:0;position:relative}
+  .ghead{font-size:9.5px;color:#8b93a5;text-align:center;padding:6px 0;border-bottom:1px solid var(--line)}
+  .ghead b{display:block;font-size:12px;color:#e7e9ee;margin-top:2px}
+  .ghead.today b{color:#fff;background:#6d7cff;width:20px;height:20px;line-height:20px;border-radius:50%;margin:2px auto 0}
+  .col{border-left:1px solid rgba(255,255,255,.05);position:relative}
+  .hours{font-size:9px;color:#6f7686;text-align:right;padding-right:6px}
+  .hours div{height:38px;line-height:38px}
+  .slot{height:38px;border-bottom:1px solid rgba(255,255,255,.04)}
+  .ev{
+    position:absolute;left:4px;right:4px;border-radius:7px;padding:3px 6px;font-size:9.5px;
+    color:#dfe3ff;background:linear-gradient(135deg,rgba(109,124,255,.5),rgba(109,124,255,.22));
+    border:1px solid rgba(109,124,255,.35);overflow:hidden;
+  }
+  .ev.b{background:linear-gradient(135deg,rgba(52,211,153,.45),rgba(52,211,153,.18));border-color:rgba(52,211,153,.35);color:#d8fff1}
+  .now{position:absolute;left:44px;right:0;height:1px;background:#fb7185}
+  .now::before{content:"";position:absolute;left:-3px;top:-2.5px;width:6px;height:6px;border-radius:50%;background:#fb7185}
+
+  /* ---------- 侧边 AI 卡片 ---------- */
+  .card{
+    position:absolute;right:14px;top:52px;width:272px;border-radius:16px;overflow:hidden;
+    background:rgba(20,22,30,.86);backdrop-filter:blur(26px) saturate(1.3);
+    box-shadow:0 22px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.07), 0 0 0 1px rgba(255,255,255,.09);
+  }
+  .card .hd{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line)}
+  .card .hd b{font-size:11px}
+  .card .hd small{display:block;font-size:9px;color:#8b93a5;font-weight:400}
+  .card .msgs{padding:10px;display:flex;flex-direction:column;gap:7px;font-size:10.5px}
+  .card .think{display:flex;gap:5px;color:#8b93a5;align-items:center}
+  .card .tool{
+    display:flex;gap:5px;align-items:center;color:#8b93a5;border-left:2px solid rgba(255,255,255,.1);
+    padding-left:7px;font-size:10px;
+  }
+  .card .tool em{font-style:normal;color:#9fb0ff;font-family:ui-monospace,Consolas,monospace;font-size:9.5px}
+  .card .tool u{margin-left:auto;text-decoration:none;opacity:.6}
+  .card .ans{color:#dfe3ee;line-height:1.55}
+  .card .me{
+    align-self:flex-end;background:rgba(109,124,255,.24);color:#dfe3ff;border-radius:10px 10px 3px 10px;
+    padding:5px 8px;max-width:88%;
+  }
+  .card .composer{margin:0 8px 8px;border:1px solid var(--line);border-radius:11px;padding:7px 8px;color:#6f7686;font-size:10px}
+  .card .composer .row{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:9.5px;color:#8b93a5}
+  .card .pill{font-family:ui-monospace,Consolas,monospace;font-size:9.5px;color:#c7cfff;background:rgba(255,255,255,.06);border-radius:6px;padding:2px 6px}
+  .card .send{margin-left:auto;width:20px;height:20px;border-radius:50%;background:#6d7cff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px}
+
+  /* ---------- DMG 安装窗 ---------- */
+  .dmg{
+    width:660px;height:400px;border-radius:12px;overflow:hidden;position:relative;
+    background:linear-gradient(170deg,#20242e,#15171e);
+    box-shadow:0 30px 70px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.07);
+    display:flex;flex-direction:column;
+  }
+  .dmg .tb{height:30px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line)}
+  .dmg .inner{flex:1;display:flex;align-items:center;justify-content:center;gap:56px}
+  .appicon{width:96px;text-align:center}
+  .appicon .sq{
+    width:90px;height:90px;border-radius:20px;margin:0 auto;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), transparent 45%),
+      linear-gradient(140deg,#6d7cff,#38bdf8 70%,#22d3ee);
+    box-shadow:0 12px 26px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.4);
+    display:flex;align-items:center;justify-content:center;font-size:34px;
+  }
+  .appicon p{font-size:10.5px;color:#c9cfdd;margin:8px 0 0}
+  .arrow{font-size:22px;color:#7c8496}
+  .folder{width:96px;text-align:center}
+  .folder .fi{font-size:64px;line-height:1;filter:saturate(.9)}
+  .folder p{font-size:10.5px;color:#c9cfdd;margin:4px 0 0}
+  .dmg .hint{height:34px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#7c8496}
+
+  /* ---------- 说明 ---------- */
+  .notes{width:1120px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .note{border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;background:rgba(255,255,255,.03)}
+  .note h3{margin:0 0 6px;font-size:11.5px;color:#c7cfff;font-weight:600}
+  .note p{margin:0;font-size:11px;color:#8b93a5;line-height:1.6}
+  code{font-family:ui-monospace,Consolas,monospace;font-size:10.5px;background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;color:#c7cfff}
+</style>
+</head>
+<body>
+
+<h2>① 打包成 macOS 应用后的窗口（原生红绿灯 + 我们的界面）</h2>
+<div class="desktop">
+  <div class="menubar">
+    <span class="apple"></span>
+    <span><b>Rill</b></span>
+    <span>文件</span><span>编辑</span><span>视图</span><span>窗口</span><span>帮助</span>
+    <span class="right"><span>⌘K</span><span>20:34</span><span>周三 10月22日</span></span>
+  </div>
+
+  <div class="window">
+    <!-- 标题栏：macOS 左红绿灯；右侧仍是我们的全局动作（不含最小化/最大化/关闭） -->
+    <div class="titlebar">
+      <div class="lights"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+      <div class="brand"><span class="logo"></span><b>Rill</b><span class="aiTag">AI</span></div>
+      <div class="tb-actions">
+        <span class="iconbtn">💬</span>
+        <span class="iconbtn">🎨</span>
+        <span class="iconbtn">⧉</span>
+        <span class="kbd">⌘ Ctrl+K</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <!-- 图标栏 -->
+      <div class="rail">
+        <b class="on">▦</b><b>✦</b><b>▤</b><b>☑</b><b>✉</b><b>▥</b>
+        <span class="sp"></span><b>⚙</b>
+      </div>
+
+      <!-- 日历 -->
+      <div class="calendar">
+        <div class="side">
+          <div class="mini">
+            <div class="hd"><span>‹</span><span>2026年10月</span><span>›</span></div>
+            <table>
+              <tr><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th><th>日</th></tr>
+              <tr><td class="dim">28</td><td class="dim">29</td><td class="dim">30</td><td>1</td><td>2</td><td>3</td><td>4</td></tr>
+              <tr><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td></tr>
+              <tr><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td></tr>
+              <tr><td>19</td><td>20</td><td class="on">21</td><td>22</td><td>23</td><td>24</td><td>25</td></tr>
+              <tr><td>26</td><td>27</td><td>28</td><td>29</td><td>30</td><td>31</td><td class="dim">1</td></tr>
+            </table>
+          </div>
+          <div class="rowline"><span>◷</span><span>习惯</span><span>每天固定日程</span></div>
+          <div class="rowline"><span>◈</span><span>类别</span><span>默认 · 工作 · 会议</span></div>
+        </div>
+
+        <div class="main">
+          <div class="toolbar">
+            <div class="seg"><i class="on">周</i><i>月</i></div>
+            <div class="nav"><span>‹</span><span>今天</span><span>›</span></div>
+            <span class="range">10月19日 – 10月25日</span>
+            <span class="primary">＋ 新建事件</span>
+          </div>
+
+          <div class="grid">
+            <div></div>
+            <div class="ghead">周一<b>19</b></div>
+            <div class="ghead">周二<b>20</b></div>
+            <div class="ghead today">周三<b>21</b></div>
+            <div class="ghead">周四<b>22</b></div>
+            <div class="ghead">周五<b>23</b></div>
+            <div class="ghead">周六<b>24</b></div>
+            <div class="ghead">周日<b>25</b></div>
+
+            <div class="hours"><div>08:00</div><div>09:00</div><div>10:00</div><div>11:00</div><div>12:00</div><div>13:00</div><div>14:00</div><div>15:00</div><div>16:00</div></div>
+            <div class="col"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+              <div class="ev" style="top:76px;height:38px">整理投递表</div>
+            </div>
+            <div class="col"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+              <div class="ev b" style="top:152px;height:57px">字节 一面</div>
+            </div>
+            <div class="col"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+              <div class="ev" style="top:38px;height:38px">刷题</div>
+              <div class="ev b" style="top:190px;height:38px">美团笔试</div>
+            </div>
+            <div class="col"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+            <div class="col"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+              <div class="ev" style="top:114px;height:38px">周会</div>
+            </div>
+            <div class="col"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+            <div class="col"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+            <div class="now" style="top:205px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 侧边 AI 卡片 -->
+      <div class="card">
+        <div class="hd">
+          <span>✦</span>
+          <div><b>根据这个简历给我推荐岗位</b><small>deepseek-flash</small></div>
+          <span class="iconbtn" style="margin-left:auto">≡</span>
+          <span class="iconbtn">＋</span>
+          <span class="iconbtn">✕</span>
+        </div>
+        <div class="msgs">
+          <div class="think">◐ 思考过程 · 用户上传了简历（PDF，8.4k 字）</div>
+          <div class="tool">✓ <em>scout_list</em> 推理·true·update·40 <u>完成</u></div>
+          <div class="tool">✓ <em>scout_list</em> 量化·true·30 <u>完成</u></div>
+          <div class="tool">✓ <em>jobs_prepare</em> 灵巧手·AI Infra <u>完成</u></div>
+          <div class="ans">按你的背景（PT2E 图重写 + 量化 + 端侧推理），优先推 <b>清晟 / 灵巧手 / 零次方</b> 这几家：岗位更贴，且截止都还早。已把 3 个岗位加入「准备投递」。</div>
+          <div class="me">这几个都帮我记进待投</div>
+        </div>
+        <div class="composer">
+          问点什么，或直接说安排日程…
+          <div class="row"><span>📎</span><span class="pill">deepseek-flash ▾</span><span class="send">↑</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="caption">
+  和 Windows 版是同一份界面，差别只有三处：① 窗口左上角是 macOS 原生红绿灯，我们自己那三个窗口按钮在 macOS 上隐藏；
+  ② 顶部有系统菜单栏；③ 托盘图标位于屏幕右上角菜单栏内（而非任务栏）。
+</p>
+
+<h2>② 双击 .dmg 打开后的安装窗口（660×400，配置见 tauri.conf.json）</h2>
+<div class="dmg">
+  <div class="tb"><div class="lights" style="margin:0"><i class="r"></i><i class="y"></i><i class="g"></i></div></div>
+  <div class="inner">
+    <div class="appicon"><div class="sq">▦</div><p>Rill</p></div>
+    <div class="arrow">➜</div>
+    <div class="folder"><div class="fi">🗂</div><p>Applications</p></div>
+  </div>
+  <div class="hint">把 Rill 拖到 Applications 即可安装（未签名版本需右键 → 打开一次）</div>
+</div>
+
+<div class="notes">
+  <div class="note">
+    <h3>为什么现在还不能直接给你 .dmg</h3>
+    <p>
+      Tauri 不能在 Windows 上交叉编译出 macOS 产物（要 Xcode 工具链 + Apple SDK）。
+      必须在 <b>Mac 上</b> 或 <b>GitHub Actions 的 macos runner</b> 上执行
+      <code>npm run tauri build</code>。代码已经为 macOS 准备好（原生 TLS 走 Security.framework、
+      图标含 .icns、bundle 段配置了 10.15 最低版本与 dmg 布局）。
+    </p>
+  </div>
+  <div class="note">
+    <h3>拿到 Mac 后的三条命令</h3>
+    <p>
+      <code>xcode-select --install</code> → <code>curl https://sh.rustup.rs -sSf | sh</code> →
+      <code>npm i &amp;&amp; npm run tauri build</code><br />
+      产物：<code>src-tauri/target/release/bundle/dmg/Rill_0.1.0_aarch64.dmg</code><br />
+      未签名首次打开：右键 App → 打开；或 <code>xattr -dr com.apple.quarantine /Applications/Rill.app</code>
+    </p>
+  </div>
+</div>
+
+</body>
+</html>
