@@ -1,6 +1,11 @@
 name: release
 
-# 打 tag（v*）或手动触发：同时构建 Windows + macOS，并把安装包挂到 GitHub Release。
+# 打 tag（v*）或手动触发：构建 Windows + macOS，最后统一发布到 GitHub Release。
+#
+# 为什么要拆成"构建"和"发布"两个阶段：
+# 之前三个 job 各自调 tauri-action 往同一个 Release 上传，会互相覆盖/抢锁，
+# 导致 aarch64 的 dmg 没传上去（v0.1.1 就是这样丢了 Apple 芯片包）。
+# 现在：各平台只负责构建并上传 artifact，最后一个 job 下载全部 artifact 后一次性发布。
 on:
   workflow_dispatch:
   push:
@@ -30,25 +35,15 @@ jobs:
         with:
           workspaces: src-tauri
       - run: npm ci
-      - name: Build & publish dmg
+      - name: Build dmg
         uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: --target ${{ matrix.target }}
-          tagName: v__VERSION__
-          releaseName: Rill v__VERSION__
-          releaseBody: |
-            本地优先的日程 / 求职 / 邮箱助手。数据全部在本机。
-
-            - **Windows**：`Rill_*_x64-setup.exe`（双击安装）或 `.msi`
-            - **macOS Apple 芯片**：`Rill_*_aarch64.dmg`
-            - **macOS Intel**：`Rill_*_x64.dmg`
-
-            安装包未做代码签名：Windows 首次运行点「更多信息 → 仍要运行」；
-            macOS 首次打开请右键 → 打开（详见附件里的安装说明）。
-          releaseDraft: false
-          prerelease: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.target }}
+          if-no-files-found: error
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
 
   windows:
     name: Windows x64
@@ -64,24 +59,48 @@ jobs:
         with:
           workspaces: src-tauri
       - run: npm ci
-      - name: Build & publish installers
+      - name: Build installers
         uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
         with:
-          tagName: v__VERSION__
-          releaseName: Rill v__VERSION__
-          releaseDraft: false
-          prerelease: false
+          name: windows-x64
+          if-no-files-found: error
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/msi/*.msi
 
-  notes:
-    name: 附加安装说明
+  publish:
+    name: 发布到 Release
     needs: [macos, windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: 列出待发布文件
+        run: ls -lh dist
       - uses: softprops/action-gh-release@v2
         with:
+          name: Rill ${{ github.ref_name }}
+          body: |
+            本地优先的日程 / 求职 / 邮箱助手。数据全部在本机。
+
+            | 平台 | 文件 |
+            |---|---|
+            | Windows | `Rill_*_x64-setup.exe`（双击安装）/ `.msi` |
+            | macOS Apple 芯片（M1–M5） | `Rill_*_aarch64.dmg` |
+            | macOS Intel | `Rill_*_x64.dmg` |
+
+            **安装包未做代码签名**（不是病毒）：
+            - Windows：首次运行点「更多信息 → 仍要运行」
+            - macOS：**从微信/QQ 接收的包会被系统标记为"已损坏"**，安装后执行
+              `xattr -dr com.apple.quarantine /Applications/Rill.app`
+              或右键 → 打开。详见附件 `install-macos.txt`。
           files: |
+            dist/*.dmg
+            dist/*.exe
+            dist/*.msi
             docs/install-windows.txt
             docs/install-macos.txt

@@ -77,15 +77,20 @@ pub fn run() {
             .build();
 
             // 系统托盘：左键/菜单恢复主窗口，菜单可开关悬浮窗、退出
-            let show_main = MenuItem::with_id(app, "show_main", "显示 RiliAgent", true, None::<&str>)?;
+            let show_main = MenuItem::with_id(app, "show_main", "显示 Rill", true, None::<&str>)?;
             let show_overview = MenuItem::with_id(app, "show_overview", "今日日程悬浮窗", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show_main, &show_overview, &quit])?;
-            let _tray = TrayIconBuilder::with_id("main")
-                .icon(app.default_window_icon().unwrap().clone())
+            // macOS 上 default_window_icon() 可能为 None（图标来自 bundle 的 icns），
+            // 直接 unwrap 会启动即崩：拿不到就不设图标，系统会用 App 图标。
+            let mut tray = TrayIconBuilder::with_id("main");
+            if let Some(icon) = app.default_window_icon() {
+                tray = tray.icon(icon.clone());
+            }
+            let _tray = tray
                 .menu(&menu)
                 .show_menu_on_left_click(false)
-                .tooltip("RiliAgent")
+                .tooltip("Rill")
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show_main" => window::show(app, "main"),
                     "show_overview" => window::toggle(app, "overview"),

@@ -1,6 +1,6 @@
 [package]
 name = "riliagent"
-version = "0.1.1"
+version = "0.1.2"
 description = "Rill — local-first calendar, job board and mail with an AI agent"
 authors = ["you"]
 edition = "2021"
