@@ -38,7 +38,18 @@ export async function initDb(migrations: Migration[]): Promise<Database> {
       console.info(`[db] skip migration ${m.id} (condition met)`);
     } else {
       for (const statement of splitStatements(m.sql)) {
-        await database.execute(statement);
+        try {
+          await database.execute(statement);
+        } catch (e) {
+          // ALTER ... ADD COLUMN 的列已经存在：
+          // 说明上次跑到这一步后进程被杀、记账没写进去（首次启动最常见）。
+          // 列已在目标状态，继续执行并记账即可，否则旧库会永远卡在启动失败。
+          if (/duplicate column name/i.test(String(e))) {
+            console.warn(`[db] ${m.id}: 列已存在，跳过该语句`);
+            continue;
+          }
+          throw e;
+        }
       }
     }
     // OR IGNORE：并发实例同时迁移时防 UNIQUE 冲突（另一实例已记账则静默跳过）
