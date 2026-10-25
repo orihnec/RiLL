@@ -123,7 +123,17 @@ pub fn run() {
                 }
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| {
+            // macOS：窗口全部隐藏/关闭后，点 Dock 图标应把主窗口叫回来（Windows 靠托盘）。
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { has_visible_windows, .. } = event {
+                if !has_visible_windows {
+                    window::show(app, "main");
+                }
+            }
+            let _ = (app, event);
+        });
 }
 
