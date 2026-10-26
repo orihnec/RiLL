@@ -43,16 +43,16 @@ export function EventCard({ occ, draft, onClick, onPointerDown, onResizeStart, o
       style={{ background: `linear-gradient(135deg, ${cat.from}, ${cat.to})` }}
     >
       <span className="absolute inset-y-0 left-0 w-1" style={{ background: cat.bar }} />
-      <div className="flex h-full flex-col justify-start gap-0.5 px-2 py-1 pl-2.5">
+      <div className={cn("flex h-full flex-col justify-start gap-0.5 px-2 pl-2.5", compact ? "py-px" : "py-1")}>
         <div
-          className={cn("flex items-center gap-1", compact ? "text-[10px]" : "text-xs")}
+          className={cn("flex items-center gap-1", compact ? "text-ui-10" : "text-xs")}
           style={{ color: cat.text }}
         >
           {occ.rrule && <Repeat2 className="size-2.5 shrink-0 opacity-70" />}
           <span className="truncate font-medium leading-tight">{occ.title}</span>
         </div>
         {!compact && (
-          <div className="text-[10px] tabular-nums text-foreground/60">
+          <div className="text-ui-10 tabular-nums text-foreground/60">
             {format(new Date(occ.startAt), "HH:mm")}–{format(new Date(occ.endAt), "HH:mm")}
           </div>
         )}

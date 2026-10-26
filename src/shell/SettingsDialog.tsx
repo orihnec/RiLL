@@ -63,7 +63,7 @@ function Section({
       <div className="mb-2 flex items-center gap-1.5">
         <span className="text-indigo-300/80">{icon}</span>
         <span className="text-xs font-semibold">{title}</span>
-        {hint && <span className="truncate text-[10px] text-muted-foreground/50">{hint}</span>}
+        {hint && <span className="truncate text-ui-10 text-muted-foreground/50">{hint}</span>}
         {action && <div className="ml-auto flex items-center gap-1.5">{action}</div>}
       </div>
       <div className="flex flex-col gap-2">{children}</div>
@@ -161,7 +161,7 @@ function ProviderCard({ provider }: { provider: LlmProvider }) {
           placeholder="供应商名称（如 DeepSeek / OpenAI）"
         />
         {isActive ? (
-          <span className="flex shrink-0 items-center gap-1 rounded-full border border-indigo-400/30 bg-indigo-400/15 px-2 py-0.5 text-[10px] text-indigo-200">
+          <span className="flex shrink-0 items-center gap-1 rounded-full border border-indigo-400/30 bg-indigo-400/15 px-2 py-0.5 text-ui-10 text-indigo-200">
             <Star className="size-2.5" /> 当前
           </span>
         ) : (
@@ -189,7 +189,7 @@ function ProviderCard({ provider }: { provider: LlmProvider }) {
           className={cn("shrink-0", confirmDel && "bg-red-500/20 text-red-300")}
           title="删除该 API"
         >
-          {confirmDel ? <span className="text-[10px]">确认删除？</span> : <Trash2 className="size-3.5" />}
+          {confirmDel ? <span className="text-ui-10">确认删除？</span> : <Trash2 className="size-3.5" />}
         </Button>
       </div>
 
@@ -224,7 +224,7 @@ function ProviderCard({ provider }: { provider: LlmProvider }) {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex-1 text-[10px] leading-relaxed text-muted-foreground/60">
+        <div className="flex-1 text-ui-10 leading-relaxed text-muted-foreground/60">
           {provider.protocol === "responses"
             ? "OpenAI 官方 API（含原生推理/搜索能力），模型填 gpt-5 系列"
             : "任意兼容端点（DeepSeek / Ollama / 中转等）"}
@@ -258,7 +258,7 @@ function ProviderCard({ provider }: { provider: LlmProvider }) {
               key={m}
               onClick={() => pickModel(m)}
               className={cn(
-                "rounded-md border px-2 py-0.5 font-mono text-[11px] transition",
+                "rounded-md border px-2 py-0.5 font-mono text-ui-11 transition",
                 chatModel === m
                   ? "border-indigo-400/60 bg-indigo-400/15 text-indigo-200"
                   : "border-white/10 bg-white/4 text-muted-foreground hover:text-foreground",
@@ -398,7 +398,7 @@ function AddProviderForm() {
         </Button>
       )}
       {providers.length === 0 && (
-        <p className="text-[11px] text-muted-foreground/60">
+        <p className="text-ui-11 text-muted-foreground/60">
           还没有配置任何 API。添加后可在聊天面板直接选择供应商与模型。
         </p>
       )}
@@ -448,7 +448,7 @@ export function SettingsView() {
         <SlidersHorizontal className="size-4 text-indigo-300" />
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold">设置</div>
-          <div className="truncate text-[10px] text-muted-foreground/60">
+          <div className="truncate text-ui-10 text-muted-foreground/60">
             模型 · 联网搜索 · 记忆 · 提醒 · 快捷键 · 数据
           </div>
         </div>
@@ -470,7 +470,7 @@ export function SettingsView() {
             hint="任意 OpenAI 兼容端点 · Key 存系统钥匙串"
             action={
               providers.length > 0 ? (
-                <span className="flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-[10px] text-emerald-300">
+                <span className="flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-ui-10 text-emerald-300">
                   <Check className="size-2.5" /> {providers.length}
                 </span>
               ) : undefined
@@ -481,7 +481,7 @@ export function SettingsView() {
             ))}
             <AddProviderForm />
 
-            <p className="text-[11px] text-muted-foreground/60">
+            <p className="text-ui-11 text-muted-foreground/60">
               请求经原生层发出（不受浏览器 CORS 限制）；每个 API 可独立保存 Key 并自动识别模型，聊天面板可直接切换。
             </p>
           </Section>
@@ -509,11 +509,11 @@ export function SettingsView() {
                 className="h-7 w-20 text-xs"
               />
               <span className="text-xs text-muted-foreground/70">分钟（0 = 开始时）</span>
-              <Button size="sm" variant="outline" onClick={() => void saveLead()} className="h-7 px-2 text-[11px]">
+              <Button size="sm" variant="outline" onClick={() => void saveLead()} className="h-7 px-2 text-ui-11">
                 {leadSaved ? <Check className="size-3 text-emerald-400" /> : "保存"}
               </Button>
             </div>
-            <p className="text-[10px] text-muted-foreground/50">
+            <p className="text-ui-10 text-muted-foreground/50">
               应用运行期间生效（含最小化到托盘）；关闭主窗口后应用在托盘常驻，提醒照常发出。
             </p>
           </Section>
@@ -529,7 +529,7 @@ export function SettingsView() {
                   key={id}
                   onClick={() => changeCloseBehavior(id)}
                   className={cn(
-                    "rounded-lg border px-2.5 py-1 text-[11px] transition",
+                    "rounded-lg border px-2.5 py-1 text-ui-11 transition",
                     closeBehavior === id
                       ? "border-indigo-400/50 bg-indigo-400/15 text-indigo-100"
                       : "border-white/10 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -539,7 +539,7 @@ export function SettingsView() {
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-muted-foreground/50">
+            <p className="text-ui-10 text-muted-foreground/50">
               第一次关闭会让你选一次，之后按选的方式执行；这里可以随时改（选「每次询问」就会恢复每次弹框）。
             </p>
           </Section>
@@ -558,7 +558,7 @@ export function SettingsView() {
                   className="flex items-center justify-between rounded-lg bg-white/4 px-2.5 py-1.5"
                 >
                   <span className="text-foreground/75">{v}</span>
-                  <kbd className="rounded-md border border-white/10 bg-white/6 px-1.5 py-0.5 font-mono text-[10px] text-indigo-200">
+                  <kbd className="rounded-md border border-white/10 bg-white/6 px-1.5 py-0.5 font-mono text-ui-10 text-indigo-200">
                     {k}
                   </kbd>
                 </div>
@@ -570,29 +570,29 @@ export function SettingsView() {
           <Section icon={<Database className="size-3.5" />} title="数据" hint="单文件 SQLite · 纯本地">
             <div className="flex items-center justify-between gap-3 rounded-lg bg-white/4 px-2.5 py-1.5 text-xs">
               <span className="shrink-0 text-foreground/75">数据库目录</span>
-              <span className="truncate font-mono text-[10px] text-muted-foreground">{dbPath || "…"}</span>
+              <span className="truncate font-mono text-ui-10 text-muted-foreground">{dbPath || "…"}</span>
             </div>
-            <div className="rounded-lg bg-white/4 px-2.5 py-1.5 text-[11px] text-muted-foreground/70">
+            <div className="rounded-lg bg-white/4 px-2.5 py-1.5 text-ui-11 text-muted-foreground/70">
               备份 = 复制该目录下的 riliagent.db
             </div>
             <div className="flex items-center justify-between rounded-lg bg-white/4 px-2.5 py-1.5 text-xs">
               <span className="text-foreground/75">版本</span>
-              <span className="font-mono text-[10px] text-muted-foreground">{version || "…"}</span>
+              <span className="font-mono text-ui-10 text-muted-foreground">{version || "…"}</span>
             </div>
           </Section>
 
-          <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50">
+          <p className="flex items-center gap-1.5 text-ui-11 text-muted-foreground/50">
             <Info className="size-3" /> 纯本地 · 单用户 · 无服务器端
           </p>
         </div>
 
         {/* 底部：统一成一条细栏 */}
         <div className="flex shrink-0 items-center justify-between gap-2 border-t border-white/6 px-4 py-2.5">
-          <span className="text-[10px] text-muted-foreground/50">改动即时生效，无需重启</span>
+          <span className="text-ui-10 text-muted-foreground/50">改动即时生效，无需重启</span>
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 px-3 text-[11px]"
+            className="h-7 px-3 text-ui-11"
             onClick={() => useUiStore.getState().setAppView("calendar")}
           >
             关闭

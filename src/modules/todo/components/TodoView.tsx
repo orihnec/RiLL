@@ -253,12 +253,12 @@ export function TodoView() {
       <div className="flex shrink-0 items-center gap-2 px-4 py-3">
         <CheckSquare className="size-4 text-indigo-300" />
         <span className="text-sm font-semibold">待办</span>
-        <span className="text-[10px] text-muted-foreground/60">
+        <span className="text-ui-10 text-muted-foreground/60">
           未完成 {open.length} · 已完成 {done.length} · 可与日程绑定，悬浮窗显示今日待办
         </span>
         <Button
           size="sm"
-          className="ml-auto h-7 px-2.5 text-[11px]"
+          className="ml-auto h-7 px-2.5 text-ui-11"
           onClick={() => {
             setEditing(null);
             setFormOpen(true);
@@ -294,7 +294,7 @@ export function TodoView() {
                 />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm">{t.title}</div>
-                  <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
+                  <div className="mt-0.5 flex items-center gap-1.5 text-ui-10 text-muted-foreground/60">
                     {t.dueAt ? <Clock className="size-2.5" /> : t.eventTitle ? <CalendarDays className="size-2.5" /> : null}
                     {dueLabel(t)}
                     {t.eventId && t.eventTitle && (
@@ -334,7 +334,7 @@ export function TodoView() {
                         : "text-muted-foreground/60 hover:bg-white/8 hover:text-red-300",
                     )}
                   >
-                    {confirmDel === t.id ? <span className="px-0.5 text-[10px]">确认？</span> : <Trash2 className="size-3.5" />}
+                    {confirmDel === t.id ? <span className="px-0.5 text-ui-10">确认？</span> : <Trash2 className="size-3.5" />}
                   </button>
                 </div>
               </div>
@@ -342,7 +342,7 @@ export function TodoView() {
 
             {done.length > 0 && (
               <>
-                <div className="mt-3 flex items-center gap-2 text-[10px] font-semibold text-muted-foreground/50">
+                <div className="mt-3 flex items-center gap-2 text-ui-10 font-semibold text-muted-foreground/50">
                   已完成（{done.length}）
                   <span className="h-px flex-1 bg-white/6" />
                 </div>

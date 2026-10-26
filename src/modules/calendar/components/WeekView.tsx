@@ -328,7 +328,7 @@ export function WeekView() {
               i === todayIdx && "text-indigo-300",
             )}
           >
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-ui-10 text-muted-foreground">
               {format(d, "EEE", { locale: zhCN })}
             </span>
             <span
@@ -358,7 +358,7 @@ export function WeekView() {
                   key={occ.id}
                   onClick={() => openEdit(occ)}
                   onContextMenu={(e) => openEventMenu(e, occ)}
-                  className="truncate rounded-md border border-white/10 px-1.5 py-0.5 text-left text-[10px] font-medium"
+                  className="truncate rounded-md border border-white/10 px-1.5 py-0.5 text-left text-ui-10 font-medium"
                   style={{
                     background: `linear-gradient(135deg, ${categoryOf(occ.category).from}, ${categoryOf(occ.category).to})`,
                     color: categoryOf(occ.category).text,
@@ -379,7 +379,7 @@ export function WeekView() {
           {/* 小时刻度 + 横线 */}
           {Array.from({ length: 24 }, (_, h) => (
             <div key={h} className="absolute inset-x-0" style={{ top: h * HOUR_H, height: HOUR_H }}>
-              <div className="absolute -top-2 left-0 w-11 pr-2 text-right text-[10px] tabular-nums text-muted-foreground/60">
+              <div className="absolute -top-2 left-0 w-11 pr-2 text-right text-ui-10 tabular-nums text-muted-foreground/60">
                 {`${String(h).padStart(2, "0")}:00`}
               </div>
               <div className="absolute left-12 right-0 top-0 border-t border-white/5" />
@@ -484,7 +484,7 @@ export function WeekView() {
               >
                 <div className="relative h-px bg-rose-400/80">
                   <span className="absolute -left-1 -top-[3px] size-1.5 rounded-full bg-rose-400" />
-                  <span className="absolute left-2 -top-[26px] rounded-md bg-rose-500/90 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-white shadow-md">
+                  <span className="absolute left-2 -top-[26px] rounded-md bg-rose-500/90 px-1.5 py-0.5 text-ui-9 font-bold tabular-nums text-white shadow-md">
                     {format(now, "HH:mm")}
                   </span>
                 </div>

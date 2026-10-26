@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import {
@@ -21,6 +21,8 @@ import type { Occurrence } from "../service";
 import { EventDialog, type DialogState } from "./EventDialog";
 import { ContextMenu, type CtxMenuItem } from "../../../components/ui/ContextMenu";
 import { cn } from "../../../lib/utils";
+import { FONT_SCALES } from "../../../lib/typography";
+import { useThemeStore } from "../../../stores/themeStore";
 
 const MAX_CHIPS = 3;
 
@@ -42,6 +44,8 @@ export function MonthView() {
   const deleteEvent = useCalendarStore((s) => s.deleteEvent);
   const reload = useCalendarStore((s) => s.reload);
   const goToday = useCalendarStore((s) => s.goToday);
+  const fontSize = useThemeStore((s) => s.fontSize);
+  const [chipSlots, setChipSlots] = useState(MAX_CHIPS);
 
   const days = useMemo(() => {
     const start = startOfWeek(startOfMonth(viewDate), { weekStartsOn: 1 });
@@ -62,6 +66,22 @@ export function MonthView() {
   const dragRef = useRef<ChipDrag | null>(null);
   const suppressClickRef = useRef(false);
   const gridRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const measure = () => {
+      const scale = FONT_SCALES[fontSize];
+      const dateHeight = Math.max(20, 16.5 * scale);
+      // 卡片行高 + 内边距/描边/间隙；溢出时留一行给「更多」，避免大字号被裁切。
+      const chipHeight = 15 * scale + 8;
+      setChipSlots(Math.max(0, Math.floor((grid.clientHeight / rows - 10 - dateHeight) / chipHeight)));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(grid);
+    return () => observer.disconnect();
+  }, [rows, fontSize]);
 
   // 每天的事件列表（全天事件跨多天显示；定时事件只显示在开始日）
   const byDay = useMemo(() => {
@@ -235,6 +255,7 @@ export function MonthView() {
           const inMonth = isSameMonth(day, viewDate);
           const today = isToday(day);
           const chips = byDay[idx];
+          const visibleChips = Math.min(MAX_CHIPS, chips.length > chipSlots ? Math.max(0, chipSlots - 1) : chipSlots);
           return (
             <div
               key={day.getTime()}
@@ -249,10 +270,10 @@ export function MonthView() {
                 toIdx === idx && "ring-2 ring-inset ring-indigo-400/50",
               )}
             >
-              <div className="flex items-center justify-end pr-1">
+              <div className="flex shrink-0 items-center justify-end pr-1">
                 <span
                   className={cn(
-                    "text-[11px] tabular-nums",
+                    "text-ui-11 tabular-nums",
                     inMonth ? "text-foreground/85" : "text-muted-foreground/30",
                     today &&
                       "flex size-5 items-center justify-center rounded-full bg-indigo-500 text-white",
@@ -261,7 +282,7 @@ export function MonthView() {
                   {format(day, "d")}
                 </span>
               </div>
-              {chips.slice(0, MAX_CHIPS).map((occ) => {
+              {chips.slice(0, visibleChips).map((occ) => {
                 const c = categoryOf(occ.category);
                 return (
                   <button
@@ -270,7 +291,7 @@ export function MonthView() {
                     onClick={() => openEdit(occ)}
                     onContextMenu={(e) => openEventMenu(e, occ)}
                     title={occ.title}
-                    className="flex items-center gap-1 truncate rounded-md border border-white/10 px-1.5 py-0.5 text-left text-[10px] font-medium transition hover:brightness-125"
+                    className="flex shrink-0 items-center gap-1 truncate rounded-md border border-white/10 px-1.5 py-0.5 text-left text-ui-10 font-medium transition hover:brightness-125"
                     style={{
                       background: `linear-gradient(135deg, ${c.from}, ${c.to})`,
                       color: c.text,
@@ -282,16 +303,16 @@ export function MonthView() {
                   </button>
                 );
               })}
-              {chips.length > MAX_CHIPS && (
+              {chips.length > visibleChips && (
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="px-1.5 py-0.5 text-left text-[10px] text-muted-foreground transition hover:text-foreground">
-                      +{chips.length - MAX_CHIPS} 更多
+                    <button className="shrink-0 px-1.5 py-0.5 text-left text-ui-10 text-muted-foreground transition hover:text-foreground">
+                      +{chips.length - visibleChips} 更多
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-64 p-1.5" align="start">
                     <div className="flex flex-col gap-1">
-                      {chips.slice(MAX_CHIPS).map((occ) => {
+                      {chips.slice(visibleChips).map((occ) => {
                         const c = categoryOf(occ.category);
                         return (
                           <button
@@ -329,7 +350,7 @@ export function MonthView() {
         cat &&
         createPortal(
           <div
-            className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 rounded-md border border-white/20 px-2 py-1 text-[10px] font-medium shadow-xl"
+            className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 rounded-md border border-white/20 px-2 py-1 text-ui-10 font-medium shadow-xl"
             style={{
               left: ghost.x,
               top: ghost.y,

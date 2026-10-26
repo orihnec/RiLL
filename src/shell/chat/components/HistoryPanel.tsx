@@ -91,11 +91,11 @@ export function HistoryPanel() {
                     )}
                   />
                   <span className="max-w-[180px] truncate font-medium">{h.sessionTitle}</span>
-                  <span className="ml-auto shrink-0 text-[10px] text-muted-foreground/50">
+                  <span className="ml-auto shrink-0 text-ui-10 text-muted-foreground/50">
                     {formatDistanceToNow(h.created_at, { addSuffix: true, locale: zhCN })}
                   </span>
                 </div>
-                <div className="truncate pl-3 text-[11px] text-muted-foreground/75">{h.content}</div>
+                <div className="truncate pl-3 text-ui-11 text-muted-foreground/75">{h.content}</div>
               </button>
             ))
           )
@@ -116,12 +116,12 @@ export function HistoryPanel() {
                 <div className="flex items-center gap-1.5">
                   <span className="truncate text-xs font-medium">{s.title}</span>
                   {s.id === sessionId && (
-                    <span className="shrink-0 rounded-full bg-indigo-400/15 px-1.5 py-px text-[9px] text-indigo-300">
+                    <span className="shrink-0 rounded-full bg-indigo-400/15 px-1.5 py-px text-ui-9 text-indigo-300">
                       当前
                     </span>
                   )}
                 </div>
-                <div className="mt-0.5 text-[10px] text-muted-foreground/60">
+                <div className="mt-0.5 text-ui-10 text-muted-foreground/60">
                   {s.message_count} 条 ·{" "}
                   {formatDistanceToNow(s.updated_at, { addSuffix: true, locale: zhCN })}
                 </div>
@@ -139,7 +139,7 @@ export function HistoryPanel() {
                 title="删除会话"
               >
                 {del.pendingKey === s.id ? (
-                  <span className="px-0.5 text-[10px]">确认？</span>
+                  <span className="px-0.5 text-ui-10">确认？</span>
                 ) : (
                   <Trash2 className="size-3.5" />
                 )}

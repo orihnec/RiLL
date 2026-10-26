@@ -47,7 +47,7 @@ export function PreparingBoard() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 items-center gap-2 px-4 pb-2 pt-2.5 text-[10px] text-muted-foreground/55">
+      <div className="flex shrink-0 items-center gap-2 px-4 pb-2 pt-2.5 text-ui-10 text-muted-foreground/55">
         <span className="tabular-nums">共 {rows.length} 个待投</span>
         <span className="hidden text-muted-foreground/35 lg:inline">
           信息库点书签加入这里 · 投出去后点「已投递」进看板
@@ -76,9 +76,9 @@ export function PreparingBoard() {
             title={j.notes ?? j.position}
             className="group flex h-9 items-center gap-2 border-b border-white/4 px-3 transition hover:bg-white/5"
           >
-            <span className="w-[30%] shrink-0 truncate text-[12.5px] font-medium">{j.company}</span>
-            <span className="min-w-0 flex-1 truncate text-[11.5px] text-foreground/70">{j.position}</span>
-            <span className="hidden min-w-0 flex-1 truncate text-[10.5px] text-muted-foreground/40 xl:block">
+            <span className="w-[30%] shrink-0 truncate text-ui-12-5 font-medium">{j.company}</span>
+            <span className="min-w-0 flex-1 truncate text-ui-11-5 text-foreground/70">{j.position}</span>
+            <span className="hidden min-w-0 flex-1 truncate text-ui-10-5 text-muted-foreground/40 xl:block">
               {j.notes ?? ""}
             </span>
             <div className="flex w-[64px] shrink-0 items-center justify-end gap-0.5">
@@ -114,7 +114,7 @@ export function PreparingBoard() {
                 )}
               >
                 {del.pendingKey === j.id ? (
-                  <span className="text-[10px]">确认？</span>
+                  <span className="text-ui-10">确认？</span>
                 ) : (
                   <Trash2 className="size-3.5" />
                 )}

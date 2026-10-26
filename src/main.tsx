@@ -10,7 +10,7 @@ import { registerAppCommands } from "./shell/commands";
 import { useSettingsStore } from "./stores/settingsStore";
 import { useCategoryStore } from "./stores/categoryStore";
 import { useJobStatusStore } from "./modules/jobs/statusStore";
-import { useThemeStore } from "./stores/themeStore";
+import { useThemeStore, watchThemeChanges } from "./stores/themeStore";
 import { useChatStore } from "./stores/chatStore";
 import { useKbStore } from "./stores/kbStore";
 import { backfillDeadlineIso } from "./modules/scout/service";
@@ -79,6 +79,7 @@ async function boot() {
     await useCategoryStore.getState().load();
     await useJobStatusStore.getState().load();
     // 主题：读库并应用（主窗口与悬浮窗都要应用，避免两窗口配色不一致）
+    await watchThemeChanges();
     await useThemeStore.getState().load();
     registerAppCommands();
     void useChatStore.getState().init();

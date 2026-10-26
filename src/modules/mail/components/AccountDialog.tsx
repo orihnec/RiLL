@@ -149,7 +149,7 @@ export function AccountDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-sm">{editing ? "编辑邮箱" : "添加邮箱"}</DialogTitle>
-          <DialogDescription className="text-[11px]">
+          <DialogDescription className="text-ui-11">
             QQ / 163 / 126 等要用**授权码**，不是登录密码；授权码只存进 Windows 凭据管理器，不入库。
           </DialogDescription>
         </DialogHeader>
@@ -162,7 +162,7 @@ export function AccountDialog({
                   key={p.id}
                   onClick={() => pickPreset(p.id)}
                   className={cn(
-                    "rounded-lg border px-2 py-1 text-[11px] transition",
+                    "rounded-lg border px-2 py-1 text-ui-11 transition",
                     presetId === p.id
                       ? "border-indigo-400/50 bg-indigo-400/12 text-indigo-200"
                       : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -252,7 +252,7 @@ export function AccountDialog({
                 <button
                   onClick={() => setNotify((v) => !v)}
                   className={cn(
-                    "flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-[11px] transition",
+                    "flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-ui-11 transition",
                     notify
                       ? "border-indigo-400/50 bg-indigo-400/12 text-indigo-200"
                       : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -277,19 +277,19 @@ export function AccountDialog({
               </div>
             </div>
           </div>
-          <p className="text-[10px] leading-relaxed text-muted-foreground/45">
+          <p className="text-ui-10 leading-relaxed text-muted-foreground/45">
             监听在后台常驻线程里跑（不是网页定时器，最小化到托盘也照样收）：服务器支持 <b>IDLE</b> 就由服务器主动推送
             （QQ / Gmail 支持）；不支持就按上面的间隔查询 —— <b>163 实测不支持 IDLE</b>，但它家的
             `STATUS` 只要 ~20ms，20 秒一次已经非常接近实时。有新邮件会弹 Windows 通知，点通知直接打开邮箱面板。
           </p>
 
           {probe && (
-            <p className="rounded-lg border border-emerald-400/25 bg-emerald-400/8 px-2.5 py-1.5 text-[11px] text-emerald-200">
+            <p className="rounded-lg border border-emerald-400/25 bg-emerald-400/8 px-2.5 py-1.5 text-ui-11 text-emerald-200">
               {probe}
             </p>
           )}
           {error && (
-            <p className="rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-1.5 text-[11px] leading-relaxed text-red-200">
+            <p className="rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-1.5 text-ui-11 leading-relaxed text-red-200">
               {error}
             </p>
           )}

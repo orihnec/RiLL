@@ -167,13 +167,12 @@ export function sanitizeMailHtml(raw: string, showImages = false): SanitizeResul
     * { max-width: 100% !important; box-sizing: border-box; }
     pre { white-space: pre-wrap; overflow-x: auto; }
     a.mail-link { color: #4f6bd8; text-decoration: underline; cursor: default; }
-    a.mail-link::after { content: " ↗"; font-size: 10px; opacity: .6; }
+    a.mail-link::after { content: " ↗"; font-size: .77em; opacity: .6; }
     blockquote { margin: 8px 0; padding-left: 10px; border-left: 2px solid rgba(128,128,128,.35); opacity: .85; }
   `;
-  doc.head?.appendChild(style);
-
   return {
-    html: doc.body?.innerHTML ?? "",
+    // 只带上应用生成的样式与已消毒的 body；原邮件 head 不进入 iframe。
+    html: `<!doctype html><html><head>${style.outerHTML}</head>${doc.body.outerHTML}</html>`,
     links: [...links.entries()].map(([href, text]) => ({ href, text: text.slice(0, 80) })),
     blockedImages,
   };

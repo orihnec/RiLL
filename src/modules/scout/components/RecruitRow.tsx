@@ -44,24 +44,24 @@ export function RecruitRow({
       {/* 公司（重点星标 + 批次） */}
       <span className="flex w-[28%] shrink-0 items-center gap-1.5">
         {rec.isKey && <Star className="size-3 shrink-0 fill-amber-300 text-amber-300" />}
-        <span className="min-w-0 truncate text-[12.5px] font-medium" title={rec.company}>
+        <span className="min-w-0 truncate text-ui-12-5 font-medium" title={rec.company}>
           {rec.company}
         </span>
         {rec.batch && (
-          <span className="shrink-0 rounded-full border border-indigo-400/25 bg-indigo-400/10 px-1.5 text-[9.5px] leading-4 text-indigo-200/90">
+          <span className="shrink-0 rounded-full border border-indigo-400/25 bg-indigo-400/10 px-1.5 text-ui-9-5 leading-4 text-indigo-200/90">
             {rec.batch}
           </span>
         )}
       </span>
 
       {/* 职位 */}
-      <span className="min-w-0 flex-1 truncate text-[11.5px] text-foreground/70" title={rec.positions ?? ""}>
+      <span className="min-w-0 flex-1 truncate text-ui-11-5 text-foreground/70" title={rec.positions ?? ""}>
         {rec.positions ?? "—"}
       </span>
 
       {/* 地点（窄屏隐藏） */}
       <span
-        className="hidden w-[15%] shrink-0 truncate text-[10.5px] text-muted-foreground/45 lg:block"
+        className="hidden w-[15%] shrink-0 truncate text-ui-10-5 text-muted-foreground/45 lg:block"
         title={rec.location ?? ""}
       >
         {locations.length > 0 ? locations.slice(0, 3).join("、") : "—"}
@@ -70,7 +70,7 @@ export function RecruitRow({
       {/* 截止 */}
       <span
         className={cn(
-          "w-[74px] shrink-0 text-[10px] tabular-nums",
+          "w-[74px] shrink-0 text-ui-10 tabular-nums",
           rec.deadlineIso
             ? expired
               ? "text-red-400/70 line-through"
@@ -116,7 +116,7 @@ export function RecruitRow({
               : "text-muted-foreground/35 opacity-0 group-hover:opacity-100 hover:bg-white/10 hover:text-red-300",
           )}
         >
-          {confirming ? <span className="text-[10px]">确认？</span> : <Trash2 className="size-3.5" />}
+          {confirming ? <span className="text-ui-10">确认？</span> : <Trash2 className="size-3.5" />}
         </button>
       </div>
     </div>

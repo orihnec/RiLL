@@ -5,12 +5,14 @@ import { ModelPicker } from "./ModelPicker";
 import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import { useChatStore } from "../../../stores/chatStore";
 import { parseAttachmentFile, ATTACHMENT_FILTERS } from "../../../lib/attachment";
+import { useThemeStore } from "../../../stores/themeStore";
 
 /**
  * 输入区：胶囊卡片（textarea 自动增高 + 附件 chips + 模型选择 + 发送/停止）。
  * IME 组合态的回车不发送（中文选候选字）。
  */
 export function Composer({ open, configured }: { open: boolean; configured: boolean }) {
+  const fontSize = useThemeStore((s) => s.fontSize);
   const status = useChatStore((s) => s.status);
   const send = useChatStore((s) => s.send);
   const stop = useChatStore((s) => s.stop);
@@ -31,7 +33,7 @@ export function Composer({ open, configured }: { open: boolean; configured: bool
     if (!el) return;
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
-  }, [input, open]);
+  }, [input, open, fontSize]);
 
   /** 选择并解析文件（.xlsx/.docx/文本），随下一条消息发送。 */
   const pickFiles = async () => {
@@ -69,7 +71,7 @@ export function Composer({ open, configured }: { open: boolean; configured: bool
             {attachments.map((a, i) => (
               <span
                 key={`${a.name}-${i}`}
-                className="flex max-w-[240px] items-center gap-1 rounded-md bg-white/6 px-1.5 py-0.5 text-[10px] text-foreground/70"
+                className="flex max-w-[240px] items-center gap-1 rounded-md bg-white/6 px-1.5 py-0.5 text-ui-10 text-foreground/70"
               >
                 <FileText className="size-3 shrink-0" />
                 <span className="truncate">{a.name}</span>
@@ -111,7 +113,7 @@ export function Composer({ open, configured }: { open: boolean; configured: bool
         />
 
         {attachError && (
-          <p className="px-3 text-[10px] text-red-400" title={attachError}>
+          <p className="px-3 text-ui-10 text-red-400" title={attachError}>
             {attachError}
           </p>
         )}

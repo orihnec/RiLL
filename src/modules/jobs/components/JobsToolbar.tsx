@@ -45,14 +45,14 @@ export function JobsToolbar({
     <>
       {/* 一行搞定：统计 + 状态筛选 + 维护动作 + 搜索（页签与标题在外面，这里不再重复） */}
       <div className="flex shrink-0 items-center gap-1.5 px-4 pb-2 pt-2.5">
-        <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground/55">
+        <span className="shrink-0 text-ui-10 tabular-nums text-muted-foreground/55">
           {matched ? `${visibleCount}/${jobsCount}` : `共 ${jobsCount} 份`}
         </span>
-        {linkMsg && <span className="text-[11px] text-amber-300/90">{linkMsg}</span>}
+        {linkMsg && <span className="text-ui-11 text-amber-300/90">{linkMsg}</span>}
         <button
           onClick={() => onFilter("all")}
           className={cn(
-            "shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] tabular-nums transition",
+            "shrink-0 rounded-full border px-2.5 py-0.5 text-ui-11 tabular-nums transition",
             filter === "all"
               ? "border-indigo-400/40 bg-indigo-400/15 text-indigo-200"
               : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -67,7 +67,7 @@ export function JobsToolbar({
               key={s.id}
               onClick={() => onFilter(s.id)}
               className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] tabular-nums transition",
+                "flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-ui-11 tabular-nums transition",
                 active ? "brightness-125" : "opacity-80 hover:opacity-100",
               )}
               style={{
@@ -86,7 +86,7 @@ export function JobsToolbar({
           <Popover>
             <PopoverTrigger asChild>
               <button
-                className="flex shrink-0 items-center gap-1 rounded-full border border-white/8 bg-white/3 px-2 py-0.5 text-[11px] text-muted-foreground transition hover:text-foreground"
+                className="flex shrink-0 items-center gap-1 rounded-full border border-white/8 bg-white/3 px-2 py-0.5 text-ui-11 text-muted-foreground transition hover:text-foreground"
                 title="其余状态"
               >
                 更多 <span className="opacity-60">{moreChips.length}</span>
@@ -99,7 +99,7 @@ export function JobsToolbar({
                   key={s.id}
                   onClick={() => onFilter(s.id)}
                   className={cn(
-                    "flex w-full items-center gap-1.5 rounded-lg px-2 py-1 text-left text-[11px] transition hover:bg-white/8",
+                    "flex w-full items-center gap-1.5 rounded-lg px-2 py-1 text-left text-ui-11 transition hover:bg-white/8",
                     filter === s.id && "bg-white/6",
                   )}
                 >
@@ -121,7 +121,7 @@ export function JobsToolbar({
               value={query}
               onChange={(e) => onQuery(e.target.value)}
               placeholder="搜索公司 / 职位 / 备注（按 / 聚焦）"
-              className="h-7 w-full rounded-lg border border-white/10 bg-white/4 pl-8 pr-7 text-[11px] outline-none transition placeholder:text-muted-foreground/40 focus:border-indigo-400/50 focus:bg-white/6"
+              className="h-7 w-full rounded-lg border border-white/10 bg-white/4 pl-8 pr-7 text-ui-11 outline-none transition placeholder:text-muted-foreground/40 focus:border-indigo-400/50 focus:bg-white/6"
             />
             {query && (
               <button
@@ -142,7 +142,7 @@ export function JobsToolbar({
         >
           <Settings2 className="size-3.5" />
         </button>
-        <Button size="sm" className="h-7 shrink-0 px-2.5 text-[11px]" onClick={onAdd}>
+        <Button size="sm" className="h-7 shrink-0 px-2.5 text-ui-11" onClick={onAdd}>
           <Plus className="size-3" /> 添加投递
         </Button>
       </div>

@@ -126,6 +126,7 @@ src/lib/           # time.ts · colors.ts · themes.ts · utils.ts · error.ts�
 - **里程碑**：**M1 能连能看**（本次）；**M2** 已读/星标/删除/移动（需 IMAP STORE/COPY）+ FTS5 全文；**M3** AI 识别面试/笔试 → 待确认卡片 → 写日历（联动求职看板）+ `mail_*` Agent 工具。用户已拍板：IMAP 授权码 · **必须人工确认才排程** · 完整正文发给模型 · 侧边栏入口 · 邮件正常保存（正文入库）。
 
 ### 主题与风格 ✅（`lib/themes.ts` + `stores/themeStore.ts` + `app/ThemePanel.tsx` + `modules/theme/`）
+- **字号大小**：右上角面板原「圆角」位置改为「字号大小」，小/中/大对应 100%/120%/150%（2026-10-26 调整），默认中。`ui_theme.fontSize` 持久化，旧配置自动补中；`--font-scale` 只缩放文字，标准 Tailwind 字号与 `text-ui-*` 都接入。新增字号类要同步 `lib/utils.ts` 的 tailwind-merge 配置；不要再写固定 `text-[Npx]`。CodeMirror 用主题扩展，邮件 iframe 由 `useMailFrame` 按原字号缩放并观察高度，主窗口/悬浮窗用 `riliagent:theme-changed` 事件即时同步。原圆角配置保留兼容，面板不再展示。
 - **入口**：TopBar 调色盘按钮 → Popover 面板（点一下**立即生效**）；Cmd+K `app.openTheme`；**智能体**：`theme_get` / `theme_set`（见下）。悬浮窗（overview）是独立 webview，窗口获得焦点时重读主题保持一致。
 - **换色原理（两个 Tailwind v4 变量钩子，勿改回逐个类名硬编码）**：
   ① `--color-indigo-*`：`bg-indigo-400/15`、`text-indigo-300` 等编译成 `color-mix(in oklab, var(--color-indigo-400) …)` → 覆盖这一条色阶即全站 120+ 处强调色一次换掉。

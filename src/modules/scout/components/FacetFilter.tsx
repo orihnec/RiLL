@@ -43,7 +43,7 @@ export function FacetFilter({
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "flex h-7 shrink-0 items-center gap-1 rounded-lg border px-2 text-[11px] transition",
+            "flex h-7 shrink-0 items-center gap-1 rounded-lg border px-2 text-ui-11 transition",
             selected.length > 0
               ? "border-indigo-400/50 bg-indigo-400/12 text-indigo-200"
               : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -51,7 +51,7 @@ export function FacetFilter({
         >
           {label}
           {selected.length > 0 && (
-            <span className="rounded-full bg-indigo-400/25 px-1 text-[9px] tabular-nums">
+            <span className="rounded-full bg-indigo-400/25 px-1 text-ui-9 tabular-nums">
               {selected.length}
             </span>
           )}
@@ -73,19 +73,19 @@ export function FacetFilter({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={`搜索${label}…`}
-            className="h-5 min-w-0 flex-1 bg-transparent text-[11px] outline-none placeholder:text-muted-foreground/50"
+            className="h-5 min-w-0 flex-1 bg-transparent text-ui-11 outline-none placeholder:text-muted-foreground/50"
           />
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="shrink-0 text-[10px] text-muted-foreground/60 transition hover:text-foreground"
+              className="shrink-0 text-ui-10 text-muted-foreground/60 transition hover:text-foreground"
             >
               ✕
             </button>
           )}
         </div>
 
-        <div className="mb-1 flex items-center justify-between px-1 text-[10px] text-muted-foreground/55">
+        <div className="mb-1 flex items-center justify-between px-1 text-ui-10 text-muted-foreground/55">
           <span>
             {q ? `${matched.length} / ${options.length} 个匹配` : `${options.length} 个可选值 · 可多选`}
           </span>
@@ -98,11 +98,11 @@ export function FacetFilter({
 
         <div className="max-h-64 overflow-y-auto">
           {options.length === 0 ? (
-            <p className="px-2 py-4 text-center text-[10px] text-muted-foreground/50">
+            <p className="px-2 py-4 text-center text-ui-10 text-muted-foreground/50">
               先点「抓取并入库」拉取数据
             </p>
           ) : shown.length === 0 ? (
-            <p className="px-2 py-4 text-center text-[10px] text-muted-foreground/50">
+            <p className="px-2 py-4 text-center text-ui-10 text-muted-foreground/50">
               没有匹配「{query.trim()}」的值
             </p>
           ) : (
@@ -110,7 +110,7 @@ export function FacetFilter({
               <button
                 key={o.value}
                 onClick={() => onToggle(o.value)}
-                className="flex w-full items-center gap-2 rounded-md px-1.5 py-1 text-left text-[11px] transition hover:bg-white/8"
+                className="flex w-full items-center gap-2 rounded-md px-1.5 py-1 text-left text-ui-11 transition hover:bg-white/8"
               >
                 <span
                   className={cn(
@@ -123,7 +123,7 @@ export function FacetFilter({
                   {selected.includes(o.value) && <Check className="size-2.5" />}
                 </span>
                 <span className="min-w-0 flex-1 truncate">{o.value}</span>
-                <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground/50">
+                <span className="shrink-0 text-ui-10 tabular-nums text-muted-foreground/50">
                   {o.count}
                 </span>
               </button>

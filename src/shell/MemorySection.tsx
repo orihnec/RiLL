@@ -82,7 +82,7 @@ function PreferenceRow({ p, onChanged }: { p: Preference; onChanged: () => void 
       <span className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", STATUS_DOT[p.status])} />
       <div className="min-w-0 flex-1">
         <p className="text-xs leading-relaxed text-foreground/85">{p.content}</p>
-        <p className="mt-0.5 text-[10px] text-muted-foreground/60">
+        <p className="mt-0.5 text-ui-10 text-muted-foreground/60">
           {STATUS_LABEL[p.status]} · 置信度 {(p.confidence * 100).toFixed(0)}%
           · {new Date(p.created_at).toLocaleDateString("zh-CN")}
         </p>
@@ -128,7 +128,7 @@ function PreferenceRow({ p, onChanged }: { p: Preference; onChanged: () => void 
             confirmDel ? "bg-red-500/20 text-red-300" : "text-muted-foreground hover:bg-white/8 hover:text-red-300",
           )}
         >
-          {confirmDel ? <span className="px-0.5 text-[10px]">确认？</span> : <Trash2 className="size-3.5" />}
+          {confirmDel ? <span className="px-0.5 text-ui-10">确认？</span> : <Trash2 className="size-3.5" />}
         </button>
       </div>
     </div>
@@ -182,7 +182,7 @@ export function MemorySection() {
     <section className="flex flex-col gap-2">
       <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
         <Brain className="size-3.5" /> 记忆与偏好
-        <span className="text-[10px] font-normal text-muted-foreground/50">
+        <span className="text-ui-10 font-normal text-muted-foreground/50">
           自动学习你的日程习惯，注入 AI 提示词
         </span>
       </div>
@@ -197,11 +197,11 @@ export function MemorySection() {
           {distilling ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3" />}
           技能沉淀
         </Button>
-        <span className="text-[10px] text-muted-foreground/60">
+        <span className="text-ui-10 text-muted-foreground/60">
           手动修正 AI 安排 {editCount} 次（≥20 次自动触发反思）
         </span>
       </div>
-      {reflectingMsg && <p className="text-[11px] text-indigo-300/80">{reflectingMsg}</p>}
+      {reflectingMsg && <p className="text-ui-11 text-indigo-300/80">{reflectingMsg}</p>}
 
       {/* 偏好列表 */}
       {visible.length > 0 && (
@@ -214,7 +214,7 @@ export function MemorySection() {
       {archivedCount > 0 && (
         <button
           onClick={() => setShowArchived(!showArchived)}
-          className="self-start text-[10px] text-muted-foreground/50 transition hover:text-foreground"
+          className="self-start text-ui-10 text-muted-foreground/50 transition hover:text-foreground"
         >
           {showArchived ? "隐藏" : "显示"}已归档（{archivedCount}）
         </button>
@@ -240,7 +240,7 @@ export function MemorySection() {
           />
           <Button
             size="sm"
-            className="h-7 px-2 text-[11px]"
+            className="h-7 px-2 text-ui-11"
             disabled={!manualText.trim()}
             onClick={async () => {
               await addPreference(manualText, 0.5);
@@ -255,7 +255,7 @@ export function MemorySection() {
       ) : (
         <button
           onClick={() => setShowAdd(true)}
-          className="self-start text-[11px] text-indigo-300/80 transition hover:text-indigo-200"
+          className="self-start text-ui-11 text-indigo-300/80 transition hover:text-indigo-200"
         >
           + 手动添加偏好
         </button>
@@ -264,14 +264,14 @@ export function MemorySection() {
       {/* 技能 */}
       {skills.length > 0 && (
         <div className="flex flex-col gap-1">
-          <div className="text-[10px] font-semibold text-muted-foreground/70">已沉淀技能</div>
+          <div className="text-ui-10 font-semibold text-muted-foreground/70">已沉淀技能</div>
           {skills.map((s) => (
             <div key={s.id} className="group flex items-center gap-2 rounded-lg bg-white/4 px-2 py-1.5">
               <div className="min-w-0 flex-1">
-                <p className="truncate font-mono text-[11px] text-indigo-200">{s.name}</p>
-                <p className="truncate text-[10px] text-muted-foreground/60">{s.description}</p>
+                <p className="truncate font-mono text-ui-11 text-indigo-200">{s.name}</p>
+                <p className="truncate text-ui-10 text-muted-foreground/60">{s.description}</p>
               </div>
-              <span className="shrink-0 text-[10px] text-muted-foreground/50">{s.use_count} 次</span>
+              <span className="shrink-0 text-ui-10 text-muted-foreground/50">{s.use_count} 次</span>
               <button
                 onClick={async () => {
                   await deleteSkill(s.id);
@@ -287,7 +287,7 @@ export function MemorySection() {
         </div>
       )}
       {prefs.length === 0 && skills.length === 0 && (
-        <p className="text-[11px] text-muted-foreground/50">
+        <p className="text-ui-11 text-muted-foreground/50">
           暂无记忆。使用一段时间（尤其让 AI 安排日程后手动修正）再运行反思，会生成个性化偏好。
         </p>
       )}

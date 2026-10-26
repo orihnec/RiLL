@@ -18,10 +18,10 @@ export function ReasoningRow({ text, running }: { text: string; running: boolean
         )}
       >
         <Brain className="size-2.5 shrink-0 text-muted-foreground/50" />
-        <span className="shrink-0 text-[10.5px] text-foreground/60">思考过程</span>
+        <span className="shrink-0 text-ui-10-5 text-foreground/60">思考过程</span>
         <span
           className={cn(
-            "min-w-0 flex-1 truncate text-[10.5px] text-muted-foreground/45",
+            "min-w-0 flex-1 truncate text-ui-10-5 text-muted-foreground/45",
             running && "text-indigo-300/60",
           )}
         >
@@ -35,7 +35,7 @@ export function ReasoningRow({ text, running }: { text: string; running: boolean
         />
       </button>
       {expanded && (
-        <div className="ml-3 mt-0.5 max-h-48 overflow-y-auto whitespace-pre-wrap border-l border-white/10 pl-2.5 text-[11px] leading-relaxed text-muted-foreground/55">
+        <div className="ml-3 mt-0.5 max-h-48 overflow-y-auto whitespace-pre-wrap border-l border-white/10 pl-2.5 text-ui-11 leading-relaxed text-muted-foreground/55">
           {text}
         </div>
       )}

@@ -26,7 +26,7 @@ export function AccountRail({ ws }: { ws: MailWorkspace }) {
   return (
     <div className="flex w-56 shrink-0 flex-col overflow-y-auto border-r border-white/6 py-1.5">
       {accounts.length === 0 && (
-        <p className="px-3 py-6 text-center text-[11px] leading-relaxed text-muted-foreground/50">
+        <p className="px-3 py-6 text-center text-ui-11 leading-relaxed text-muted-foreground/50">
           还没有邮箱
           <br />
           点右上角「添加邮箱」接入 QQ / 163 / 企业邮箱
@@ -67,7 +67,7 @@ export function AccountRail({ ws }: { ws: MailWorkspace }) {
                 <ChevronRight className="size-3 shrink-0" />
               )}
               <span
-                className="flex size-5 shrink-0 items-center justify-center rounded-md text-[9px] font-medium text-white/90"
+                className="flex size-5 shrink-0 items-center justify-center rounded-md text-ui-9 font-medium text-white/90"
                 style={{ background: `hsl(${avatarHue(a.email)} 45% 42%)` }}
               >
                 {initials(a.displayName ?? "", a.email)}
@@ -110,7 +110,7 @@ export function AccountRail({ ws }: { ws: MailWorkspace }) {
                 </button>
               )}
               {unread > 0 && (
-                <span className="shrink-0 rounded-full bg-indigo-400/20 px-1.5 text-[10px] tabular-nums text-indigo-200">
+                <span className="shrink-0 rounded-full bg-indigo-400/20 px-1.5 text-ui-10 tabular-nums text-indigo-200">
                   {unread > 99 ? "99+" : unread}
                 </span>
               )}
@@ -130,7 +130,7 @@ export function AccountRail({ ws }: { ws: MailWorkspace }) {
                     onDoubleClick={() => void syncOne(a.id, f)}
                     title={`${f.name}（双击同步此文件夹）`}
                     className={cn(
-                      "ml-4 flex cursor-pointer items-center gap-1.5 rounded-lg py-1.5 pl-3 pr-2 text-[11px] transition",
+                      "ml-4 flex cursor-pointer items-center gap-1.5 rounded-lg py-1.5 pl-3 pr-2 text-ui-11 transition",
                       active
                         ? "bg-indigo-400/12 text-indigo-100"
                         : "text-muted-foreground hover:bg-white/4 hover:text-foreground",
@@ -139,7 +139,7 @@ export function AccountRail({ ws }: { ws: MailWorkspace }) {
                     <span className="shrink-0 text-muted-foreground/70">{folderIcon(f.special)}</span>
                     <span className="min-w-0 flex-1 truncate">{f.name}</span>
                     {f.unread > 0 && (
-                      <span className="shrink-0 rounded-full bg-indigo-400/18 px-1.5 text-[10px] tabular-nums text-indigo-200">
+                      <span className="shrink-0 rounded-full bg-indigo-400/18 px-1.5 text-ui-10 tabular-nums text-indigo-200">
                         {f.unread > 99 ? "99+" : f.unread}
                       </span>
                     )}

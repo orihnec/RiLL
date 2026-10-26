@@ -58,7 +58,7 @@ export function TitleBar() {
         <span className="pointer-events-none text-xs font-semibold tracking-wide text-foreground/85">
           Rill
         </span>
-        <span className="pointer-events-none rounded-full border border-indigo-400/20 bg-indigo-400/10 px-1.5 py-px text-[9px] font-medium text-indigo-300">
+        <span className="pointer-events-none rounded-full border border-indigo-400/20 bg-indigo-400/10 px-1.5 py-px text-ui-9 font-medium text-indigo-300">
           AI
         </span>
       </div>
@@ -89,7 +89,7 @@ export function TitleBar() {
           className="flex h-7 items-center gap-1 rounded-lg px-1.5 leading-none text-muted-foreground outline-none transition hover:bg-white/10 hover:text-foreground"
         >
           <CommandIcon className="size-3.5 shrink-0" />
-          <span className="hidden text-[10px] tracking-tight lg:inline">{isMac ? "⌘K" : "Ctrl+K"}</span>
+          <span className="hidden text-ui-10 tracking-tight lg:inline">{isMac ? "⌘K" : "Ctrl+K"}</span>
         </button>
       </div>
 

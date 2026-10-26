@@ -97,7 +97,7 @@ export function MailView() {
             <Mail className="size-4 text-indigo-300" />
             邮箱
           </div>
-            <span className="flex min-w-0 flex-1 shrink items-center gap-1.5 truncate text-[10px] text-muted-foreground/60">
+            <span className="flex min-w-0 flex-1 shrink items-center gap-1.5 truncate text-ui-10 text-muted-foreground/60">
               {accounts.length} 个账号
               {unreadTotal > 0 ? ` · ${unreadTotal} 封未读` : ""}
               {notifyAccounts > 0 && (
@@ -130,7 +130,7 @@ export function MailView() {
                 onClick={() => setUnreadOnly((v) => !v)}
                 title="只看未读会话"
                 className={cn(
-                  "flex h-8 shrink-0 items-center gap-1 rounded-md border px-2 text-[11px] transition",
+                  "flex h-8 shrink-0 items-center gap-1 rounded-md border px-2 text-ui-11 transition",
                   unreadOnly
                     ? "border-indigo-400/50 bg-indigo-400/12 text-indigo-200"
                     : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -146,7 +146,7 @@ export function MailView() {
               <Button
                 size="sm"
                 variant={pending > 0 ? "default" : "outline"}
-                className="h-8 px-2.5 text-[11px]"
+                className="h-8 px-2.5 text-ui-11"
                 onClick={() => void askScan()}
                 disabled={!!busy || !activeFolder}
                 title="让 AI 读最近的邮件，找出面试/笔试/宣讲会/截止时间（只产出候选，不自动写日历）"
@@ -158,7 +158,7 @@ export function MailView() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 px-2.5 text-[11px]"
+                  className="h-8 px-2.5 text-ui-11"
                   onClick={() => setScheduleOpen(true)}
                   title="查看 AI 识别出的候选并确认写入日历"
                 >
@@ -169,7 +169,7 @@ export function MailView() {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-8 px-2.5 text-[11px]"
+                className="h-8 px-2.5 text-ui-11"
                 onClick={() => void syncAll()}
                 disabled={!!busy || accounts.length === 0}
                 title="同步所有账号的收件箱（同一账号的同步会自动排队，不会并发开连接）"
@@ -181,7 +181,7 @@ export function MailView() {
               {/* 低频维护动作收进一个菜单，主界面只留三个高频按钮 */}
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button size="sm" variant="outline" className="h-8 px-2 text-[11px]" title="会话与正文维护">
+                  <Button size="sm" variant="outline" className="h-8 px-2 text-ui-11" title="会话与正文维护">
                     <MoreHorizontal className="size-3.5" />
                   </Button>
                 </PopoverTrigger>
@@ -191,11 +191,11 @@ export function MailView() {
                     disabled={!!busy || !activeFolder}
                     className="flex w-full flex-col items-start gap-0.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-white/8 disabled:opacity-40"
                   >
-                    <span className="flex items-center gap-1.5 text-[11.5px]">
+                    <span className="flex items-center gap-1.5 text-ui-11-5">
                       {busy === "organize" ? <Loader2 className="size-3 animate-spin" /> : <Folder className="size-3" />}
                       整理会话
                     </span>
-                    <span className="text-[10px] text-muted-foreground/60">本地重算，不联网</span>
+                    <span className="text-ui-10 text-muted-foreground/60">本地重算，不联网</span>
                   </button>
 
                   <button
@@ -203,11 +203,11 @@ export function MailView() {
                     disabled={!!busy || !activeFolder}
                     className="flex w-full flex-col items-start gap-0.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-white/8 disabled:opacity-40"
                   >
-                    <span className="flex items-center gap-1.5 text-[11.5px]">
+                    <span className="flex items-center gap-1.5 text-ui-11-5">
                       <RefreshCw className="size-3" />
                       重建会话（重读邮件头）
                     </span>
-                    <span className="text-[10px] text-muted-foreground/60">
+                    <span className="text-ui-10 text-muted-foreground/60">
                       老邮件缺线索字段时更准；会重新拉一遍邮件头
                     </span>
                   </button>
@@ -217,7 +217,7 @@ export function MailView() {
                     disabled={!!busy || !activeFolder}
                     className="flex w-full flex-col items-start gap-0.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-white/8 disabled:opacity-40"
                   >
-                    <span className="flex items-center gap-1.5 text-[11.5px]">
+                    <span className="flex items-center gap-1.5 text-ui-11-5">
                       {busy === "prefetch" ? (
                         <Loader2 className="size-3 animate-spin" />
                       ) : (
@@ -225,10 +225,10 @@ export function MailView() {
                       )}
                       {badBodies > 0 ? `修复乱码正文 ${badBodies}` : "补正文"}
                       {missing > 0 && badBodies === 0 && (
-                        <span className="text-[10px] text-muted-foreground/60">待补 {missing}</span>
+                        <span className="text-ui-10 text-muted-foreground/60">待补 {missing}</span>
                       )}
                     </span>
-                    <span className="text-[10px] text-muted-foreground/60">
+                    <span className="text-ui-10 text-muted-foreground/60">
                       下载正文缓存（列表摘要 / 检索 / AI 识别都要用）
                     </span>
                   </button>
@@ -237,7 +237,7 @@ export function MailView() {
 
               <Button
                 size="sm"
-                className="h-8 px-2.5 text-[11px]"
+                className="h-8 px-2.5 text-ui-11"
                 onClick={() => setDialog({ open: true, editing: null })}
               >
                 <Plus className="size-3" />
@@ -256,23 +256,23 @@ export function MailView() {
           {(progress || tip || scanAsk) && (
             <div className="shrink-0 px-3 pt-1.5">
               {progress && (
-                <p className="flex items-center gap-1.5 text-[11px] text-indigo-300/85">
+                <p className="flex items-center gap-1.5 text-ui-11 text-indigo-300/85">
                   <Loader2 className="size-3 animate-spin" />
                   {progress}
                 </p>
               )}
               {scanAsk && (
-                <div className="mt-1 flex flex-wrap items-center gap-2 rounded-lg border border-indigo-400/30 bg-indigo-400/8 px-2.5 py-1.5 text-[11px] text-indigo-100">
+                <div className="mt-1 flex flex-wrap items-center gap-2 rounded-lg border border-indigo-400/30 bg-indigo-400/8 px-2.5 py-1.5 text-ui-11 text-indigo-100">
                   <Sparkles className="size-3 shrink-0" />
                   <span>
                     将把 <b>{scanAsk.messages}</b> 封邮件正文（约 {Math.round(scanAsk.chars / 1000)} 千字）发给模型识别
                     {scanAsk.skippedNoBody > 0 ? `；另有 ${scanAsk.skippedNoBody} 封没缓存正文会跳过` : ""}
                   </span>
                   <div className="ml-auto flex gap-1.5">
-                    <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => void runScan()}>
+                    <Button size="sm" className="h-6 px-2 text-ui-11" onClick={() => void runScan()}>
                       开始识别
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px]" onClick={() => setScanAsk(null)}>
+                    <Button size="sm" variant="ghost" className="h-6 px-2 text-ui-11" onClick={() => setScanAsk(null)}>
                       取消
                     </Button>
                   </div>
@@ -281,7 +281,7 @@ export function MailView() {
               {tip && (
                 <p
                   className={cn(
-                    "mt-1 rounded-lg border px-2.5 py-1.5 text-[11px]",
+                    "mt-1 rounded-lg border px-2.5 py-1.5 text-ui-11",
                     tip.kind === "ok"
                       ? "border-emerald-400/25 bg-emerald-400/8 text-emerald-200"
                       : "border-red-400/30 bg-red-500/10 text-red-200",
@@ -307,19 +307,19 @@ export function MailView() {
             className="absolute right-8 top-24 max-h-[50vh] w-56 overflow-y-auto rounded-xl border border-white/10 bg-[var(--overlay)] p-1.5 shadow-2xl backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground/50">移动到</p>
+            <p className="px-2 py-1 text-ui-10 uppercase tracking-wide text-muted-foreground/50">移动到</p>
             {moveTargets.map((f) => (
               <button
                 key={f.id}
                 onClick={() => activeAccount && void moveThread(movePicker, f)}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11px] text-muted-foreground transition hover:bg-white/6 hover:text-foreground"
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-ui-11 text-muted-foreground transition hover:bg-white/6 hover:text-foreground"
               >
                 {folderIcon(f.special)}
                 <span className="truncate">{f.name}</span>
               </button>
             ))}
             {moveTargets.length === 0 && (
-              <p className="px-2 py-2 text-[11px] text-muted-foreground/50">没有其它文件夹</p>
+              <p className="px-2 py-2 text-ui-11 text-muted-foreground/50">没有其它文件夹</p>
             )}
           </div>
         </div>

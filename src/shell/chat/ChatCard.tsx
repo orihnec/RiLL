@@ -93,7 +93,7 @@ export function ChatCard() {
           <div className="truncate text-xs font-semibold">
             {view === "history" ? "历史记录" : currentTitle}
           </div>
-          <div className="truncate text-[10px] text-muted-foreground/60">
+          <div className="truncate text-ui-10 text-muted-foreground/60">
             {view === "history"
               ? "搜索回忆 · 切换 · 删除"
               : configured

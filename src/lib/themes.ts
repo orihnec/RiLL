@@ -10,6 +10,8 @@
  *    否则上百处 `bg-white/N` 会在浅底上直接消失。
  */
 
+import { FONT_SIZES, FONT_SCALES, type FontSize } from "./typography";
+
 export type ThemeMode = "dark" | "light";
 
 export interface AccentTheme {
@@ -47,6 +49,7 @@ export interface ThemeConfig {
   /** background === "custom" 时使用（#rrggbb） */
   backgroundHex: string;
   radius: string;
+  fontSize: FontSize;
 }
 
 /* ---------------- 主题色 ---------------- */
@@ -165,6 +168,7 @@ export const DEFAULT_THEME: ThemeConfig = {
   background: "ambient",
   backgroundHex: "#0b0d12",
   radius: "normal",
+  fontSize: "medium",
 };
 
 /* ---------------- 颜色工具 ---------------- */
@@ -410,6 +414,7 @@ export function themeCssVars(cfg: ThemeConfig): Record<string, string> {
     "--accent-foreground": ramp[1],
     // 圆角基准（radius-sm/md/lg/xl/2xl/3xl 都由它派生）
     "--radius": radius.radius,
+    "--font-scale": String(FONT_SCALES[cfg.fontSize]),
     // 背景
     "--background": bgColor,
     "--app-bg": bgColor,
@@ -444,6 +449,7 @@ export function sanitizeTheme(input: unknown): ThemeConfig {
     background: backgroundOk ? (raw.background as string) : DEFAULT_THEME.background,
     backgroundHex: normalizeHex(String(raw.backgroundHex ?? "")) ?? DEFAULT_THEME.backgroundHex,
     radius: RADII.some((r) => r.id === raw.radius) ? (raw.radius as string) : DEFAULT_THEME.radius,
+    fontSize: FONT_SIZES.some((s) => s.id === raw.fontSize) ? raw.fontSize! : DEFAULT_THEME.fontSize,
   };
 }
 
@@ -455,5 +461,5 @@ export function describeTheme(cfg: ThemeConfig): string {
       ? `自定义 ${normalizeHex(cfg.backgroundHex) ?? cfg.backgroundHex}`
       : (findBackground(cfg.background)?.name ?? cfg.background);
   const { label } = resolveAccent(cfg);
-  return `基调 ${mode === "light" ? "浅色" : "深色"} · 主题色 ${label} · 背景 ${bg} · 圆角 ${findRadius(cfg.radius).name}`;
+  return `基调 ${mode === "light" ? "浅色" : "深色"} · 主题色 ${label} · 背景 ${bg} · 字号 ${FONT_SIZES.find((s) => s.id === cfg.fontSize)!.name}`;
 }

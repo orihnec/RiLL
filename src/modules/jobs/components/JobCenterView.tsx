@@ -30,7 +30,7 @@ export function JobCenterView() {
             onClick={() => setTab(t.id)}
             title={t.hint}
             className={cn(
-              "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11.5px] transition",
+              "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-ui-11-5 transition",
               tab === t.id
                 ? "bg-white/10 font-medium text-foreground"
                 : "text-muted-foreground hover:bg-white/5 hover:text-foreground",

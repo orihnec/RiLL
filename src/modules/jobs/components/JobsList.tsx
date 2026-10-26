@@ -46,7 +46,7 @@ export function JobsList({
   return (
     <div className="flex flex-col">
       {/* 表头：窄、浅、只留排序入口 */}
-      <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-white/6 px-3 pb-1 pt-0.5 text-[10px] text-muted-foreground/45 backdrop-blur">
+      <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-white/6 px-3 pb-1 pt-0.5 text-ui-10 text-muted-foreground/45 backdrop-blur">
         <span className="w-[30%] shrink-0">公司</span>
         <span className="min-w-0 flex-1">职位</span>
         <span className="w-[74px] shrink-0">状态</span>
@@ -78,19 +78,19 @@ export function JobsList({
           title={j.notes ? `${j.position}\n${j.notes}` : j.position}
           className="group flex h-9 cursor-pointer items-center gap-2 border-b border-white/4 px-3 transition hover:bg-white/5"
         >
-          <span className="w-[30%] shrink-0 truncate text-[12.5px] font-medium">
+          <span className="w-[30%] shrink-0 truncate text-ui-12-5 font-medium">
             <Highlight text={j.company} terms={terms} />
           </span>
-          <span className="min-w-0 flex-1 truncate text-[11.5px] text-foreground/70">
+          <span className="min-w-0 flex-1 truncate text-ui-11-5 text-foreground/70">
             <Highlight text={j.position} terms={terms} />
           </span>
           <span className="w-[74px] shrink-0">
             <StatusCell job={j} statuses={statuses} onChange={(sid) => onChangeStatus(j.id, sid)} />
           </span>
-          <span className="w-[62px] shrink-0 text-[10px] tabular-nums text-muted-foreground/55">
+          <span className="w-[62px] shrink-0 text-ui-10 tabular-nums text-muted-foreground/55">
             {formatAppliedAt(j.applied_at)}
           </span>
-          <span className="hidden min-w-0 flex-1 truncate text-[10.5px] text-muted-foreground/40 xl:block">
+          <span className="hidden min-w-0 flex-1 truncate text-ui-10-5 text-muted-foreground/40 xl:block">
             {j.notes ?? ""}
           </span>
           <div className="flex w-[64px] shrink-0 items-center justify-end gap-0.5">
@@ -141,7 +141,7 @@ export function JobsList({
                   : "text-muted-foreground/35 opacity-0 group-hover:opacity-100 hover:bg-white/10 hover:text-red-300",
               )}
             >
-              {confirmDel === j.id ? <span className="text-[10px]">确认？</span> : <Trash2 className="size-3.5" />}
+              {confirmDel === j.id ? <span className="text-ui-10">确认？</span> : <Trash2 className="size-3.5" />}
             </button>
           </div>
         </div>
