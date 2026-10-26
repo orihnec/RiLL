@@ -2,12 +2,14 @@
 export type SortKey = "company" | "position" | "status" | "applied_at";
 
 /** 时间戳 → `<input type="date">` 需要的 `YYYY-MM-DD`（本地时区）。 */
-export function toDateInput(ms: number): string {
+export function toDateInput(ms: number | null): string {
+  if (ms === null) return "";
   const d = new Date(ms);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 /** 投递日期展示（中文本地化）。 */
-export function formatAppliedAt(ms: number): string {
+export function formatAppliedAt(ms: number | null): string {
+  if (ms === null) return "—";
   return new Date(ms).toLocaleDateString("zh-CN");
 }

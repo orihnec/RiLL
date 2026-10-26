@@ -4,6 +4,8 @@ import { useUiStore, type JobTab } from "../../../stores/uiStore";
 import { JobsBoard } from "./JobsBoard";
 import { PreparingBoard } from "./PreparingBoard";
 import { ScoutView } from "../../scout/components/ScoutView";
+import { WORKBENCH_BY_ID } from "../../../shell/workbench";
+import { JobImportDialog } from "../import/views/JobImportDialog";
 
 const TABS: { id: JobTab; label: string; icon: typeof Briefcase; hint: string }[] = [
   { id: "preparing", label: "准备投递", icon: ClipboardList, hint: "想投但还没投的岗位（来自信息库或手动添加）" },
@@ -40,6 +42,13 @@ export function JobCenterView() {
             {t.label}
           </button>
         ))}
+        <div className="ml-auto flex gap-1">
+          {WORKBENCH_BY_ID.get("jobs")?.actions?.map((action) => (
+            <button key={action.id} onClick={action.run} className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-ui-11-5 text-muted-foreground transition hover:bg-white/5 hover:text-foreground">
+              <action.icon className="size-3.5" />{action.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -47,6 +56,7 @@ export function JobCenterView() {
         {tab === "applied" && <JobsBoard />}
         {tab === "scout" && <ScoutView />}
       </div>
+      <JobImportDialog />
     </div>
   );
 }

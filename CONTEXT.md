@@ -270,3 +270,13 @@ src/lib/           # time.ts · colors.ts · themes.ts · utils.ts · error.ts�
 ## 9. 环境
 
 Node v24 / npm（无 pnpm）/ Rust 1.97.1（MSVC）/ WebView2。开发：`npm run tauri dev`。DeepSeek 实测 key 用户提供（聊天中贴过，已提醒用户重置）；测试脚本 key 一律走 `$env:DEEPSEEK_KEY`，**严禁写入代码/git**。
+
+## 飞书投递导入（2026-10-26）
+
+- 实施与使用说明见 docs/FEISHU-IMPORT-DELIVERY.md；内嵌表已在 Windows 用户 OAuth 下验证，缺少岗位列时需要用户补录实际岗位。
+- 历史 jobs:0 / schema.sql 不动；日期已知标记、revision、extras 和导入表依次追加为 jobs:1～4，ALTER 各自 skipIf。迁移前通过原生 SQLite VACUUM INTO 备份。
+- applied_at_known=0 时 service 映射 applied_at=null；不要恢复成今天或向 UI 暴露 0。手动更新用单条 UPDATE 并递增 revision，准备投递与真实投递日期分开。
+- jobs_import 是“Rust 只做壳”的明确例外：复用 SQL 插件 DbInstances 同一池，在固定应用数据库内做原子提交 / 撤销；禁止前端多次 execute 假事务、禁止原生命令接收任意 SQL / 数据库路径。
+- 来源身份 = OAuth 连接 + 真实资源 + 数据表，Base 视图不参与身份；row number、内容哈希和公司主页不是稳定记录 ID。本地删除保留 binding。
+- 飞书凭据只在系统 keyring 的分段 vault。读、写、刷新、断开走跨进程系统文件锁；不记录密钥，不把验证报告 / 私人申请网址提交到源码。
+- 撤销必须比较完整快照、revision、绑定与后续来源。清理批次快照会让恢复 / 撤销失效，不清理正式投递及去重绑定。

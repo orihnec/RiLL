@@ -3,6 +3,7 @@ import {
   Briefcase,
   CalendarDays,
   CheckSquare,
+  Download,
   Library,
   Mail,
   Settings,
@@ -10,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { AppView } from "../stores/uiStore";
+import { useJobImportStore } from "../modules/jobs/import/store";
 
 /**
  * ★ 工作台注册表：主区视图的唯一事实来源。
@@ -35,6 +37,7 @@ export interface WorkbenchEntry {
   hideInRail?: boolean;
   /** 懒加载视图（重组件走分包） */
   Component: LazyExoticComponent<ComponentType>;
+  actions?: { id: string; label: string; icon: LucideIcon; run: () => void }[];
 }
 
 const SettingsView = lazy(() =>
@@ -88,6 +91,8 @@ export const WORKBENCH: WorkbenchEntry[] = [
     hint: "求职中心（准备投递 · 已投递看板 · 校招信息库）",
     sidebarRank: 10,
     Component: JobsBoard,
+    actions: [{ id: "jobs.importFeishu", label: "从飞书导入", icon: Download,
+      run: () => useJobImportStore.getState().openDialog() }],
   },
   {
     id: "todo",
