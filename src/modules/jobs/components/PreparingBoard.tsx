@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { ArrowRight, ExternalLink, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { ArrowRight, BookOpen, ExternalLink, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { openExternalLink } from "../../../lib/url";
 import { cn } from "../../../lib/utils";
 import type { JobApplication } from "../service";
 import { usePreparingBoard } from "../hooks/usePreparingBoard";
 import { JobFormDialog } from "./JobFormDialog";
+import { ContextMenu, type CtxMenuItem } from "../../../components/ui/ContextMenu";
+// 待投记录也可以关联独立保存的面经。
+import { openInterviews } from "../../interviews";
 
 /**
  * 准备投递：想投但还没投的岗位（`job_applications` 里 status = "preparing"）。
@@ -14,6 +17,7 @@ import { JobFormDialog } from "./JobFormDialog";
 export function PreparingBoard() {
   const { rows, loading, busyId, error, del, statuses, refresh, markApplied, remove } = usePreparingBoard();
   const [editing, setEditing] = useState<JobApplication | null>(null);
+  const [menu, setMenu] = useState<{ x: number; y: number; items: CtxMenuItem[] } | null>(null);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -45,6 +49,13 @@ export function PreparingBoard() {
           <div
             key={j.id}
             onClick={() => setEditing(j)}
+            onContextMenu={event => {
+              event.preventDefault(); event.stopPropagation();
+              setMenu({ x: event.clientX, y: event.clientY, items: [
+                { label: "记录面经", icon: <BookOpen className="size-3.5" />, onSelect: () => openInterviews(j, true) },
+                { label: "查看面经", icon: <BookOpen className="size-3.5" />, onSelect: () => openInterviews(j) },
+              ] });
+            }}
             title={j.notes ?? j.position}
             className="group flex min-h-9 cursor-pointer items-center gap-2 border-b border-white/4 px-3 py-1 transition hover:bg-white/5"
           >
@@ -96,6 +107,7 @@ export function PreparingBoard() {
         ))}
       </div>
       <JobFormDialog open={Boolean(editing)} job={editing} statuses={statuses} onClose={() => setEditing(null)} onSaved={() => { void refresh(); }} />
+      {menu && <ContextMenu x={menu.x} y={menu.y} items={menu.items} onClose={() => setMenu(null)} />}
     </div>
   );
 }

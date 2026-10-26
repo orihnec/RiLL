@@ -4,13 +4,13 @@ import type { DialogState } from "../modules/calendar/components/EventDialog";
 /** 主区工作台视图：日历（周/月）、求职中心、邮箱、知识库、待办。 */
 export type AppView = "calendar" | "chat" | "jobs" | "mail" | "kb" | "settings" | "todo";
 
-/** 求职中心内部的三个页签。 */
-export type JobTab = "preparing" | "applied" | "scout";
+/** 求职中心内部页签。 */
+export type JobTab = "preparing" | "applied" | "interviews" | "scout";
 
 /** 应用级 UI 状态（工作台视图 / 设置弹层 / 命令栏 / 全局新建事件对话框）。 */
 interface UiState {
   appView: AppView;
-  /** 求职中心的当前页签（准备投递 / 已投递 / 信息库） */
+  /** 求职中心的当前页签（准备投递 / 已投递 / 面经 / 信息库） */
   jobTab: JobTab;
   paletteOpen: boolean;
   /** 习惯（每天固定安排）弹窗 */

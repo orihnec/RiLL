@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
-import { Briefcase, ExternalLink, Pencil, Plus, RefreshCw, Search, Settings2, Trash2 } from "lucide-react";
+import { BookOpen, Briefcase, ExternalLink, Pencil, Plus, RefreshCw, Search, Settings2, Trash2 } from "lucide-react";
 import { ContextMenu, type CtxMenuItem } from "../../../components/ui/ContextMenu";
 import type { JobApplication } from "../service";
 import { useJobsBoard } from "../hooks/useJobsBoard";
@@ -9,6 +9,8 @@ import { JobsList } from "./JobsList";
 import { JobFormDialog } from "./JobFormDialog";
 import { JobStatusManagerDialog } from "./JobStatusManagerDialog";
 import { LinkFillPicker } from "./LinkFillPicker";
+// 从投递的公开快照创建或查看面经，面经数据由独立模块保存。
+import { openInterviews } from "../../interviews";
 
 /**
  * 求职监控工作台：状态筛选（自定义状态）+ 关键词搜索 + 表格。
@@ -34,6 +36,8 @@ export function JobsBoard() {
   const rowMenu = (e: ReactMouseEvent, j: JobApplication) => {
     const items: CtxMenuItem[] = [
       { label: "编辑", icon: <Pencil className="size-3.5" />, onSelect: () => openEdit(j) },
+      { label: "记录面经", icon: <BookOpen className="size-3.5" />, onSelect: () => openInterviews(j, true) },
+      { label: "查看面经", icon: <BookOpen className="size-3.5" />, onSelect: () => openInterviews(j) },
       ...(j.url
         ? [
             {

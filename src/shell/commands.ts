@@ -1,7 +1,7 @@
 import { commands } from "../kernel/commands";
 import { useCalendarStore } from "../stores/calendarStore";
 import { useThemeStore } from "../stores/themeStore";
-import { useUiStore } from "../stores/uiStore";
+import { useUiStore, type JobTab } from "../stores/uiStore";
 import { CALENDAR_MODES, WORKBENCH } from "./workbench";
 
 /**
@@ -47,9 +47,10 @@ export function registerAppCommands(): void {
   });
 
   // 求职中心内部页签
-  const jobTabs: { id: "preparing" | "applied" | "scout"; title: string; keywords: string[] }[] = [
+  const jobTabs: { id: JobTab; title: string; keywords: string[] }[] = [
     { id: "preparing", title: "准备投递", keywords: ["待投", "准备", "想投"] },
     { id: "applied", title: "已投递看板", keywords: ["投递", "看板", "面试", "offer"] },
+    { id: "interviews", title: "面经复盘", keywords: ["面经", "复盘", "面试问题", "知识点", "interviews"] },
     { id: "scout", title: "校招信息库", keywords: ["校招", "招聘", "信息库", "scout", "抓取"] },
   ];
   for (const t of jobTabs) {

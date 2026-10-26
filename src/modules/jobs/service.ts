@@ -91,3 +91,5 @@ export async function reassignJobStatus(from: string, to: string): Promise<void>
   notifyJobsChanged();
 }
 export * from "./search";
+/** 对其他模块公开投递变化版本，用于刷新关联选择器。 */
+export { useJobsVersion } from "./changes";
