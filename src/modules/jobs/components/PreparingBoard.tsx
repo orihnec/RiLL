@@ -46,14 +46,14 @@ export function PreparingBoard() {
             key={j.id}
             onClick={() => setEditing(j)}
             title={j.notes ?? j.position}
-            className="group flex h-9 cursor-pointer items-center gap-2 border-b border-white/4 px-3 transition hover:bg-white/5"
+            className="group flex min-h-9 cursor-pointer items-center gap-2 border-b border-white/4 px-3 py-1 transition hover:bg-white/5"
           >
             <span className="w-[30%] shrink-0 truncate text-ui-12-5 font-medium">{j.company}</span>
             <span className="min-w-0 flex-1 truncate text-ui-11-5 text-foreground/70">{j.position}</span>
             <span className="hidden min-w-0 flex-1 truncate text-ui-10-5 text-muted-foreground/40 xl:block">
               {j.notes ?? ""}
             </span>
-            <div className="flex w-[64px] shrink-0 items-center justify-end gap-0.5">
+            <div className="flex w-[calc(80px*var(--font-scale))] shrink-0 items-center justify-end gap-0.5 whitespace-nowrap">
               {j.url && (
                 <button
                   onClick={(event) => { event.stopPropagation(); void openExternalLink(j.url as string); }}

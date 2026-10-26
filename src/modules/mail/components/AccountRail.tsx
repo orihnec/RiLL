@@ -67,7 +67,7 @@ export function AccountRail({ ws }: { ws: MailWorkspace }) {
                 <ChevronRight className="size-3 shrink-0" />
               )}
               <span
-                className="flex size-5 shrink-0 items-center justify-center rounded-md text-ui-9 font-medium text-white/90"
+                className="flex size-[2.25em] shrink-0 items-center justify-center whitespace-nowrap rounded-md text-ui-9 font-medium leading-none text-white/90"
                 style={{ background: `hsl(${avatarHue(a.email)} 45% 42%)` }}
               >
                 {initials(a.displayName ?? "", a.email)}

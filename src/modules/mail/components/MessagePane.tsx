@@ -87,7 +87,7 @@ export function MessagePane({
       {/* 发件人 / 收件人 / 时间 */}
       <header className="flex items-start gap-2.5 border-b border-white/6 px-4 py-3">
         <span
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-ui-10 font-medium text-white/90"
+          className="flex size-[3.2em] shrink-0 items-center justify-center whitespace-nowrap rounded-lg text-ui-10 font-medium leading-none text-white/90"
           style={{ background: `hsl(${avatarHue(message.fromAddress ?? "?")} 45% 42%)` }}
         >
           {initials(message.fromName ?? "", message.fromAddress ?? "")}
