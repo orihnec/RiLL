@@ -90,7 +90,7 @@ export function SearchSection() {
     <section className="flex flex-col gap-2.5">
       <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
         <Globe className="size-3.5" /> 联网搜索
-        <span className="text-[10px] font-normal text-muted-foreground/50">
+        <span className="text-ui-10 font-normal text-muted-foreground/50">
           给 AI 提供实时信息（web_search 工具）
         </span>
       </div>
@@ -114,7 +114,7 @@ export function SearchSection() {
 
         {provider === "deepseek" && (
           <div className="flex flex-col gap-2">
-            <p className="text-[11px] leading-relaxed text-muted-foreground/70">
+            <p className="text-ui-11 leading-relaxed text-muted-foreground/70">
               使用 DeepSeek 官方原生联网搜索（Anthropic 兼容接口 + web_search 工具，与官方 Harness 同款）。
               无需额外 Key——自动复用你在上方配置的 DeepSeek 供应商密钥。
             </p>
@@ -142,7 +142,7 @@ export function SearchSection() {
                 />
               </div>
             </div>
-            <p className="text-[10px] text-muted-foreground/50">
+            <p className="text-ui-10 text-muted-foreground/50">
               留空使用默认值；如需独立 Key（不复用供应商），填在下方 Tavily 输入框旁的说明——或直接添加一个 DeepSeek 供应商。
             </p>
           </div>
@@ -202,7 +202,7 @@ export function SearchSection() {
           )}
         </div>
         {testError && <p className="text-xs text-red-400">{testError}</p>}
-        <p className="flex items-center gap-1 text-[11px] text-muted-foreground/60">
+        <p className="flex items-center gap-1 text-ui-11 text-muted-foreground/60">
           <KeyRound className="size-3" /> Key 存系统钥匙串；请求经原生层发出（无 CORS 限制）。
           未配置时自动降级 Wikipedia 免费搜索。
         </p>

@@ -17,7 +17,7 @@ export function TurnStatus() {
       <Loader2 className="size-2.5 animate-spin text-indigo-300/70" />
       <span>开始思考…</span>
       {elapsed >= 15_000 && (
-        <span className="font-mono text-[10px] text-muted-foreground/40">{fmtDuration(elapsed)}</span>
+        <span className="font-mono text-ui-10 text-muted-foreground/40">{fmtDuration(elapsed)}</span>
       )}
     </span>
   );

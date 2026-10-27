@@ -201,7 +201,7 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
           <DialogTitle>
             {isEdit ? "编辑事件" : "新建事件"}
             {isOccurrence && (
-              <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2 py-0.5 text-[10px] font-medium text-indigo-300">
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2 py-0.5 text-ui-10 font-medium text-indigo-300">
                 <Repeat2 className="size-2.5" /> 重复
               </span>
             )}
@@ -290,7 +290,7 @@ export function EventDialog({ state, onClose, onCreate, onUpdate, onDelete }: Pr
             </Label>
             {!allDay && (
               <span
-                className="ml-auto rounded-md px-2 py-0.5 text-[10px] tabular-nums"
+                className="ml-auto rounded-md px-2 py-0.5 text-ui-10 tabular-nums"
                 style={{ background: cat.from, color: cat.text }}
               >
                 {startInput.slice(11)} – {endInput.slice(11)}

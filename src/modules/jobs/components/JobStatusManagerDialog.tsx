@@ -89,7 +89,7 @@ export function JobStatusManagerDialog({ open, onClose }: Props) {
                 )}
               >
                 {confirmDel === s.id ? (
-                  <span className="px-0.5 text-[10px]">确认？</span>
+                  <span className="px-0.5 text-ui-10">确认？</span>
                 ) : (
                   <Trash2 className="size-3.5" />
                 )}

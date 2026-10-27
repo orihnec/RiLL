@@ -56,12 +56,12 @@ export function ScoutFilterBar({
           value={keyword}
           onChange={(e) => onKeyword(e.target.value)}
           placeholder="搜索：公司 / 岗位 / 地点 / 来源…"
-          className="h-6 min-w-0 flex-1 bg-transparent text-[11px] outline-none placeholder:text-muted-foreground/50"
+          className="h-6 min-w-0 flex-1 bg-transparent text-ui-11 outline-none placeholder:text-muted-foreground/50"
         />
         {keyword && (
           <button
             onClick={() => onKeyword("")}
-            className="shrink-0 text-[10px] text-muted-foreground/60 transition hover:text-foreground"
+            className="shrink-0 text-ui-10 text-muted-foreground/60 transition hover:text-foreground"
           >
             ✕
           </button>
@@ -82,7 +82,7 @@ export function ScoutFilterBar({
       <button
         onClick={onToggleOnlyKey}
         className={cn(
-          "flex h-7 shrink-0 items-center gap-1 rounded-lg border px-2 text-[11px] transition",
+          "flex h-7 shrink-0 items-center gap-1 rounded-lg border px-2 text-ui-11 transition",
           onlyKey
             ? "border-amber-400/50 bg-amber-400/12 text-amber-200"
             : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -96,7 +96,7 @@ export function ScoutFilterBar({
         onClick={onToggleOpenOnly}
         title="只看截止日期还没过的（截止为空/无法识别的一律保留）"
         className={cn(
-          "flex h-7 shrink-0 items-center gap-1 rounded-lg border px-2 text-[11px] transition",
+          "flex h-7 shrink-0 items-center gap-1 rounded-lg border px-2 text-ui-11 transition",
           openOnly
             ? "border-emerald-400/50 bg-emerald-400/12 text-emerald-200"
             : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -109,7 +109,7 @@ export function ScoutFilterBar({
       {activeFilters > 0 && (
         <button
           onClick={onReset}
-          className="flex h-7 shrink-0 items-center gap-1 rounded-lg border border-white/8 bg-white/3 px-2 text-[11px] text-muted-foreground transition hover:text-foreground"
+          className="flex h-7 shrink-0 items-center gap-1 rounded-lg border border-white/8 bg-white/3 px-2 text-ui-11 text-muted-foreground transition hover:text-foreground"
         >
           <FilterX className="size-3" />
           重置（{activeFilters}）
@@ -118,7 +118,7 @@ export function ScoutFilterBar({
 
       <SortControl sort={sort} onChange={onSort} />
 
-      <span className="ml-auto text-[10px] text-muted-foreground/60">
+      <span className="ml-auto text-ui-10 text-muted-foreground/60">
         {loading
           ? "查询中…"
           : `命中 ${total} 条${

@@ -63,7 +63,7 @@ export function ModelPicker({ open, streaming }: { open: boolean; streaming: boo
             disabled={streaming}
             title={`${active.name} · ${active.chatModel || "选择模型"}`}
             className={cn(
-              "flex h-6 max-w-[150px] min-w-0 items-center gap-1 rounded-md px-1.5 text-[10.5px] transition",
+              "flex h-6 max-w-[150px] min-w-0 items-center gap-1 rounded-md px-1.5 text-ui-10-5 transition",
               menuOpen
                 ? "bg-indigo-400/15 text-indigo-100"
                 : "text-muted-foreground hover:bg-white/8 hover:text-foreground",
@@ -87,17 +87,17 @@ export function ModelPicker({ open, streaming }: { open: boolean; streaming: boo
             {refreshing ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />}
           </button>
           {refreshError && (
-            <span className="truncate text-[10px] text-red-400" title={refreshError}>
+            <span className="truncate text-ui-10 text-red-400" title={refreshError}>
               刷新失败
             </span>
           )}
         </>
       ) : (
         <>
-          <span className="text-[11px] text-muted-foreground/60">未配置 API</span>
+          <span className="text-ui-11 text-muted-foreground/60">未配置 API</span>
           <button
             onClick={() => useUiStore.getState().setAppView("settings")}
-            className="ml-auto text-[11px] text-indigo-300 transition hover:text-indigo-200"
+            className="ml-auto text-ui-11 text-indigo-300 transition hover:text-indigo-200"
           >
             去设置 →
           </button>
@@ -121,7 +121,7 @@ export function ModelPicker({ open, streaming }: { open: boolean; streaming: boo
           >
             {providers.map((p) => (
               <div key={p.id}>
-                <div className="px-2 pb-0.5 pt-1.5 text-[10px] font-semibold text-muted-foreground/70">
+                <div className="px-2 pb-0.5 pt-1.5 text-ui-10 font-semibold text-muted-foreground/70">
                   {p.name}
                   {!p.apiKeySet && "（未保存 Key）"}
                 </div>
@@ -133,7 +133,7 @@ export function ModelPicker({ open, streaming }: { open: boolean; streaming: boo
                         key={m}
                         onClick={() => pick(p.id, m)}
                         className={cn(
-                          "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left font-mono text-[11px] transition hover:bg-white/8",
+                          "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left font-mono text-ui-11 transition hover:bg-white/8",
                           isCurrent && "bg-indigo-400/15 text-indigo-200",
                         )}
                       >
@@ -143,7 +143,7 @@ export function ModelPicker({ open, streaming }: { open: boolean; streaming: boo
                     );
                   })
                 ) : (
-                  <div className="px-2 pb-1 text-[10px] text-muted-foreground/60">
+                  <div className="px-2 pb-1 text-ui-10 text-muted-foreground/60">
                     {p.apiKeySet ? "未获取模型 — 点右侧刷新" : "未配置 Key"}
                   </div>
                 )}

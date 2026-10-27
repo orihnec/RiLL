@@ -23,7 +23,7 @@ export function SortControl({
         <button
           title={`排序：${current.label}（${current.hint}）`}
           className={cn(
-            "flex h-7 shrink-0 items-center gap-1 rounded-lg border px-2 text-[11px] transition",
+            "flex h-7 shrink-0 items-center gap-1 rounded-lg border px-2 text-ui-11 transition",
             sortable
               ? "border-indigo-400/50 bg-indigo-400/12 text-indigo-200"
               : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -33,13 +33,13 @@ export function SortControl({
           <span className="opacity-60">排序</span>
           {current.label}
           {sortable && (
-            <span className="text-[9px] opacity-70">{sort.dir === "asc" ? "正序" : "倒序"}</span>
+            <span className="text-ui-9 opacity-70">{sort.dir === "asc" ? "正序" : "倒序"}</span>
           )}
           <ChevronDown className="size-3 opacity-60" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 border-white/10 bg-popover p-1.5 text-popover-foreground">
-        <div className="mb-1 px-1 text-[10px] text-muted-foreground/55">排序方式</div>
+        <div className="mb-1 px-1 text-ui-10 text-muted-foreground/55">排序方式</div>
         {CAMPUS_SORT_OPTIONS.map((o) => (
           <button
             key={o.key}
@@ -52,7 +52,7 @@ export function SortControl({
               if (o.key === "default") setOpen(false);
             }}
             className={cn(
-              "flex w-full items-start gap-2 rounded-md px-1.5 py-1 text-left text-[11px] transition hover:bg-white/8",
+              "flex w-full items-start gap-2 rounded-md px-1.5 py-1 text-left text-ui-11 transition hover:bg-white/8",
               sort.key === o.key && "bg-white/6",
             )}
           >
@@ -61,16 +61,16 @@ export function SortControl({
             </span>
             <span className="min-w-0 flex-1">
               <span className="block">{o.label}</span>
-              <span className="block text-[9px] text-muted-foreground/45">{o.hint}</span>
+              <span className="block text-ui-9 text-muted-foreground/45">{o.hint}</span>
             </span>
             {sort.key === o.key && o.key !== "default" && (
-              <span className="mt-0.5 shrink-0 rounded bg-indigo-400/15 px-1 text-[9px] text-indigo-200">
+              <span className="mt-0.5 shrink-0 rounded bg-indigo-400/15 px-1 text-ui-9 text-indigo-200">
                 {sort.dir === "asc" ? "正序" : "倒序"}
               </span>
             )}
           </button>
         ))}
-        <p className="mt-1 border-t border-white/6 px-1 pt-1 text-[9px] leading-relaxed text-muted-foreground/45">
+        <p className="mt-1 border-t border-white/6 px-1 pt-1 text-ui-9 leading-relaxed text-muted-foreground/45">
           点已选中的项可切换正序 / 倒序；日期类排序会把「无截止时间」的条目排在最后。
         </p>
       </PopoverContent>

@@ -36,7 +36,7 @@ src/
 │  ├─ workbench.ts  # ★ 工作台与面板注册表（顶部/侧栏/右键/Cmd+K 的唯一入口来源）
 │  └─ commands.ts   # Cmd+K 命令（从注册表派生）
 ├─ kernel/        # 内核：db 迁移调度 / module 加载器 / agent 运行时 / rag / 搜索 / 提醒
-├─ modules/       # 业务模块（calendar / jobs / scout / todo / knowledge / mail / theme / web）
+├─ modules/       # 业务模块（calendar / jobs / interviews / scout / todo / knowledge / mail / theme / web）
 ├─ stores/        # 跨模块状态（ui / theme / settings / chat / category / kb / mail / scout）
 ├─ components/    # 通用原语（ui/）+ Markdown
 └─ lib/           # 时间、颜色、主题、URL、附件、错误文案
@@ -52,6 +52,7 @@ src/
 
 ## 文档
 
+- [docs/INTERVIEW-REVIEWS.md](docs/INTERVIEW-REVIEWS.md) —— 面经记录、逐题复盘、草稿恢复与开发验证
 - [docs/DEV-GUIDE.md](docs/DEV-GUIDE.md) —— **二次开发规范**（新功能放哪、模板、自检清单）
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) —— 结构梳理、分层理由、精简方案
 - [docs/REFACTOR-MAP.md](docs/REFACTOR-MAP.md) —— 文件级拆解图与进度

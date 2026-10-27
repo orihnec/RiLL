@@ -1,5 +1,7 @@
 import { create } from "zustand";
+import { emit, listen } from "@tauri-apps/api/event";
 import { getDb } from "../kernel/db";
+import type { FontSize } from "../lib/typography";
 import {
   applyTheme,
   sanitizeTheme,
@@ -12,6 +14,7 @@ import {
 
 /** 主题设置持久化在 app_settings（key = ui_theme，JSON）。 */
 const KEY = "ui_theme";
+const THEME_CHANGED = "riliagent:theme-changed";
 
 interface ThemeState extends ThemeConfig {
   loaded: boolean;
@@ -26,6 +29,7 @@ interface ThemeState extends ThemeConfig {
   /** 自定义底色（自动按亮度判断深/浅基调） */
   setBackgroundHex: (hex: string) => void;
   setRadius: (id: string) => void;
+  setFontSize: (size: FontSize) => void;
   /** 一次性设置多项（智能体 theme_set 用）；返回是否有非法值被忽略 */
   apply: (patch: Partial<ThemeConfig>) => ThemeConfig;
   reset: () => void;
@@ -38,6 +42,7 @@ async function persist(cfg: ThemeConfig): Promise<void> {
     "INSERT INTO app_settings (key, value) VALUES ($1, $2) ON CONFLICT(key) DO UPDATE SET value = $2",
     [KEY, JSON.stringify(cfg)],
   );
+  await emit(THEME_CHANGED, cfg);
 }
 
 /** 改一项 → 立即应用 + 落库（失败只告警，不影响当前会话的视觉效果）。 */
@@ -52,6 +57,7 @@ function commit(
     background: get().background,
     backgroundHex: get().backgroundHex,
     radius: get().radius,
+    fontSize: get().fontSize,
     ...patch,
   };
   applyTheme(cfg);
@@ -101,6 +107,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     commit(set, get, { background: CUSTOM_BACKGROUND_ID, backgroundHex: normalized });
   },
   setRadius: (id) => commit(set, get, { radius: id }),
+  setFontSize: (fontSize) => commit(set, get, { fontSize }),
 
   /** 智能体/设置页批调用：非法值会被忽略，返回最终生效的配置。 */
   apply: (patch) => {
@@ -110,6 +117,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
       background: get().background,
       backgroundHex: get().backgroundHex,
       radius: get().radius,
+      fontSize: get().fontSize,
       ...patch,
     };
     const clean = sanitizeTheme(raw);
@@ -122,3 +130,12 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   reset: () => commit(set, get, DEFAULT_THEME),
   setPanelOpen: (panelOpen) => set({ panelOpen }),
 }));
+
+/** 主窗口与悬浮窗各自有 store，收到事件只应用，避免再次保存形成广播循环。 */
+export function watchThemeChanges() {
+  return listen<ThemeConfig>(THEME_CHANGED, ({ payload }) => {
+    const cfg = sanitizeTheme(payload);
+    applyTheme(cfg);
+    useThemeStore.setState(cfg);
+  });
+}

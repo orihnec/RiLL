@@ -188,7 +188,7 @@ export function OverviewPanel() {
         <div data-tauri-drag-region className="flex shrink-0 items-center gap-1.5 border-b border-white/6 px-3 py-2 select-none">
           <CalendarDays className="pointer-events-none size-3.5 text-indigo-300" />
           <span className="pointer-events-none truncate text-xs font-semibold">{today}</span>
-          <span className="pointer-events-none text-[10px] text-muted-foreground/50">
+          <span className="pointer-events-none text-ui-10 text-muted-foreground/50">
             {sorted.length} 日程 · {todos.length} 待办
           </span>
         <div className="pointer-events-auto ml-auto flex items-center gap-0.5">
@@ -217,7 +217,7 @@ export function OverviewPanel() {
         {/* 今日待办 */}
         {todos.length > 0 && (
           <div className="mb-2 flex flex-col gap-1">
-            <div className="flex items-center gap-1 px-1 text-[10px] font-semibold text-muted-foreground/60">
+            <div className="flex items-center gap-1 px-1 text-ui-10 font-semibold text-muted-foreground/60">
               <CheckSquare className="size-3" /> 今日待办
             </div>
             {todos.slice(0, 5).map((t) => (
@@ -228,25 +228,25 @@ export function OverviewPanel() {
                 className="flex items-center gap-2 rounded-lg border border-white/6 bg-white/3 px-2 py-1 text-left transition hover:bg-white/6"
               >
                 <span className="size-3 shrink-0 rounded border border-white/25" />
-                <span className="truncate text-[11px] text-foreground/85">{t.title}</span>
+                <span className="truncate text-ui-11 text-foreground/85">{t.title}</span>
                 {t.eventTitle && (
-                  <span className="ml-auto shrink-0 truncate text-[9px] text-indigo-300/80">{t.eventTitle}</span>
+                  <span className="ml-auto shrink-0 truncate text-ui-9 text-indigo-300/80">{t.eventTitle}</span>
                 )}
               </button>
             ))}
-            {todos.length > 5 && <p className="px-1 text-[9px] text-muted-foreground/40">还有 {todos.length - 5} 条…</p>}
+            {todos.length > 5 && <p className="px-1 text-ui-9 text-muted-foreground/40">还有 {todos.length - 5} 条…</p>}
           </div>
         )}
 
         {/* 日程列表 */}
         {sorted.length === 0 && todos.length === 0 ? (
-          <div className="mt-10 flex flex-col items-center gap-1.5 text-center text-[11px] text-muted-foreground/60">
+          <div className="mt-10 flex flex-col items-center gap-1.5 text-center text-ui-11 text-muted-foreground/60">
             <CalendarDays className="size-5 opacity-50" />
             今天没有日程和待办
           </div>
         ) : (
           <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-1 px-1 text-[10px] font-semibold text-muted-foreground/60">
+            <div className="flex items-center gap-1 px-1 text-ui-10 font-semibold text-muted-foreground/60">
               <CalendarDays className="size-3" /> 今日日程
             </div>
             {sorted.map((o) => {
@@ -267,13 +267,13 @@ export function OverviewPanel() {
                     <div className="flex items-center gap-1.5">
                       <span className={cn("truncate text-xs font-medium", ongoing && "text-indigo-100")}>{o.title}</span>
                       {ongoing && (
-                        <span className="shrink-0 rounded-full bg-indigo-400/20 px-1.5 py-px text-[9px] text-indigo-200">进行中</span>
+                        <span className="shrink-0 rounded-full bg-indigo-400/20 px-1.5 py-px text-ui-9 text-indigo-200">进行中</span>
                       )}
                       {soon && (
-                        <span className="shrink-0 rounded-full bg-amber-400/15 px-1.5 py-px text-[9px] text-amber-300">即将开始</span>
+                        <span className="shrink-0 rounded-full bg-amber-400/15 px-1.5 py-px text-ui-9 text-amber-300">即将开始</span>
                       )}
                     </div>
-                    <div className="mt-0.5 text-[10px] tabular-nums text-muted-foreground/60">
+                    <div className="mt-0.5 text-ui-10 tabular-nums text-muted-foreground/60">
                       {o.allDay ? "全天" : `${format(new Date(o.startAt), "HH:mm")} – ${format(new Date(o.endAt), "HH:mm")}`}
                     </div>
                   </div>
@@ -281,7 +281,7 @@ export function OverviewPanel() {
               );
             })}
             {remaining.length === 0 && sorted.length > 0 && (
-              <p className="mt-1 text-center text-[10px] text-muted-foreground/40">今日日程已全部结束</p>
+              <p className="mt-1 text-center text-ui-10 text-muted-foreground/40">今日日程已全部结束</p>
             )}
           </div>
         )}

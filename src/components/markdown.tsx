@@ -22,12 +22,12 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
   return (
     <div className="group/code my-2 overflow-hidden rounded-xl border border-white/8" style={{ background: "var(--code-bg, #0d0f16)" }}>
       <div className="flex items-center justify-between border-b border-white/6 bg-white/3 px-2.5 py-1">
-        <span className="font-mono text-[10px] text-muted-foreground/60">{lang || "code"}</span>
+        <span className="font-mono text-ui-10 text-muted-foreground/60">{lang || "code"}</span>
         <button
           onClick={() => void copy()}
           title="复制代码"
           className={cn(
-            "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] transition",
+            "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-ui-10 transition",
             copied ? "text-emerald-400" : "text-muted-foreground/60 hover:bg-white/8 hover:text-foreground",
           )}
         >
@@ -35,7 +35,7 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
           {copied ? "已复制" : "复制"}
         </button>
       </div>
-      <pre className="max-h-80 overflow-x-auto overflow-y-auto p-2.5 text-[11px] leading-relaxed">
+      <pre className="max-h-80 overflow-x-auto overflow-y-auto p-2.5 text-ui-11 leading-relaxed">
         <code className="font-mono">{code}</code>
       </pre>
     </div>
@@ -60,7 +60,7 @@ const components: Components = {
   ol: ({ children }) => <ol className="my-1.5 list-decimal space-y-0.5 pl-5">{children}</ol>,
   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
   h1: ({ children }) => <h1 className="mb-1 mt-2 text-base font-semibold first:mt-0">{children}</h1>,
-  h2: ({ children }) => <h2 className="mb-1 mt-2 text-[15px] font-semibold first:mt-0">{children}</h2>,
+  h2: ({ children }) => <h2 className="mb-1 mt-2 text-ui-15 font-semibold first:mt-0">{children}</h2>,
   h3: ({ children }) => <h3 className="mb-1 mt-1.5 text-sm font-semibold first:mt-0">{children}</h3>,
   h4: ({ children }) => <h4 className="mb-0.5 mt-1.5 text-sm font-medium first:mt-0">{children}</h4>,
   strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,

@@ -32,7 +32,7 @@ export function Pager({
     "flex size-6 items-center justify-center rounded-md border border-white/8 bg-white/3 text-muted-foreground transition hover:bg-white/8 hover:text-foreground disabled:opacity-30 disabled:hover:bg-white/3";
 
   return (
-    <div className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-t border-white/6 px-4 py-2 text-[11px] text-muted-foreground/70">
+    <div className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-t border-white/6 px-4 py-2 text-ui-11 text-muted-foreground/70">
       <span>
         共 <span className="tabular-nums text-foreground/80">{total}</span> 条 · 第{" "}
         <span className="tabular-nums text-foreground/80">{page}</span> / {pageCount} 页
@@ -41,7 +41,7 @@ export function Pager({
         <select
           value={pageSize}
           onChange={(e) => onPageSize(Number(e.target.value))}
-          className="h-6 rounded-md border border-white/8 bg-white/3 px-1 text-[10px] text-muted-foreground outline-none hover:text-foreground"
+          className="h-6 rounded-md border border-white/8 bg-white/3 px-1 text-ui-10 text-muted-foreground outline-none hover:text-foreground"
           title="每页条数"
         >
           {PAGE_SIZES.map((n) => (
@@ -63,7 +63,7 @@ export function Pager({
             onChange={(e) => setJump(e.target.value)}
             onBlur={commitJump}
             onKeyDown={(e) => e.key === "Enter" && commitJump()}
-            className="h-6 w-12 rounded-md border border-white/10 bg-white/4 px-1 text-center text-[10px] tabular-nums text-foreground outline-none focus:border-indigo-400/50"
+            className="h-6 w-12 rounded-md border border-white/10 bg-white/4 px-1 text-center text-ui-10 tabular-nums text-foreground outline-none focus:border-indigo-400/50"
           />
           页
         </span>

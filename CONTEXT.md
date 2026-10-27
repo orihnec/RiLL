@@ -126,6 +126,7 @@ src/lib/           # time.ts · colors.ts · themes.ts · utils.ts · error.ts�
 - **里程碑**：**M1 能连能看**（本次）；**M2** 已读/星标/删除/移动（需 IMAP STORE/COPY）+ FTS5 全文；**M3** AI 识别面试/笔试 → 待确认卡片 → 写日历（联动求职看板）+ `mail_*` Agent 工具。用户已拍板：IMAP 授权码 · **必须人工确认才排程** · 完整正文发给模型 · 侧边栏入口 · 邮件正常保存（正文入库）。
 
 ### 主题与风格 ✅（`lib/themes.ts` + `stores/themeStore.ts` + `app/ThemePanel.tsx` + `modules/theme/`）
+- **字号大小**：右上角面板原「圆角」位置改为「字号大小」，小/中/大对应 100%/120%/150%（2026-10-26 调整），默认中。`ui_theme.fontSize` 持久化，旧配置自动补中；`--font-scale` 只缩放文字，标准 Tailwind 字号与 `text-ui-*` 都接入。新增字号类要同步 `lib/utils.ts` 的 tailwind-merge 配置；不要再写固定 `text-[Npx]`。CodeMirror 用主题扩展，邮件 iframe 由 `useMailFrame` 按原字号缩放并观察高度，主窗口/悬浮窗用 `riliagent:theme-changed` 事件即时同步。原圆角配置保留兼容，面板不再展示。
 - **入口**：TopBar 调色盘按钮 → Popover 面板（点一下**立即生效**）；Cmd+K `app.openTheme`；**智能体**：`theme_get` / `theme_set`（见下）。悬浮窗（overview）是独立 webview，窗口获得焦点时重读主题保持一致。
 - **换色原理（两个 Tailwind v4 变量钩子，勿改回逐个类名硬编码）**：
   ① `--color-indigo-*`：`bg-indigo-400/15`、`text-indigo-300` 等编译成 `color-mix(in oklab, var(--color-indigo-400) …)` → 覆盖这一条色阶即全站 120+ 处强调色一次换掉。
@@ -269,3 +270,13 @@ src/lib/           # time.ts · colors.ts · themes.ts · utils.ts · error.ts�
 ## 9. 环境
 
 Node v24 / npm（无 pnpm）/ Rust 1.97.1（MSVC）/ WebView2。开发：`npm run tauri dev`。DeepSeek 实测 key 用户提供（聊天中贴过，已提醒用户重置）；测试脚本 key 一律走 `$env:DEEPSEEK_KEY`，**严禁写入代码/git**。
+
+## 飞书投递导入（2026-10-26）
+
+- 实施与使用说明见 docs/FEISHU-IMPORT-DELIVERY.md；内嵌表已在 Windows 用户 OAuth 下验证，缺少岗位列时需要用户补录实际岗位。
+- 历史 jobs:0 / schema.sql 不动；日期已知标记、revision、extras 和导入表依次追加为 jobs:1～4，ALTER 各自 skipIf。迁移前通过原生 SQLite VACUUM INTO 备份。
+- applied_at_known=0 时 service 映射 applied_at=null；不要恢复成今天或向 UI 暴露 0。手动更新用单条 UPDATE 并递增 revision，准备投递与真实投递日期分开。
+- jobs_import 是“Rust 只做壳”的明确例外：复用 SQL 插件 DbInstances 同一池，在固定应用数据库内做原子提交 / 撤销；禁止前端多次 execute 假事务、禁止原生命令接收任意 SQL / 数据库路径。
+- 来源身份 = OAuth 连接 + 真实资源 + 数据表，Base 视图不参与身份；row number、内容哈希和公司主页不是稳定记录 ID。本地删除保留 binding。
+- 飞书凭据只在系统 keyring 的分段 vault。读、写、刷新、断开走跨进程系统文件锁；不记录密钥，不把验证报告 / 私人申请网址提交到源码。
+- 撤销必须比较完整快照、revision、绑定与后续来源。清理批次快照会让恢复 / 撤销失效，不清理正式投递及去重绑定。

@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { errMsg } from "../../../lib/error";
 import {
   Dialog,
   DialogContent,
@@ -19,9 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
-import { createJob, updateJob, type JobApplication } from "../service";
+import type { JobApplication } from "../service";
 import type { JobStatusDef } from "../statusStore";
-import { toDateInput } from "../format";
+import { useJobForm } from "../hooks/useJobForm";
+import { JobSourceDetails } from "./JobSourceDetails";
 
 /** 创建/编辑投递记录（状态取自自定义状态列表）。 */
 export function JobFormDialog({
@@ -37,62 +36,13 @@ export function JobFormDialog({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [company, setCompany] = useState("");
-  const [position, setPosition] = useState("");
-  const [status, setStatus] = useState("");
-  const [url, setUrl] = useState("");
-  const [notes, setNotes] = useState("");
-  const [appliedDate, setAppliedDate] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const fallback = statuses[0]?.id ?? "applied";
-
-  // 打开时用当前记录回填（编辑）或清空（新建）
-  useEffect(() => {
-    if (!open) return;
-    setError(null);
-    setCompany(job?.company ?? "");
-    setPosition(job?.position ?? "");
-    setStatus(job?.status ?? fallback);
-    setUrl(job?.url ?? "");
-    setNotes(job?.notes ?? "");
-    setAppliedDate(toDateInput(job?.applied_at ?? Date.now()));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, job]);
-
-  const save = async () => {
-    if (!company.trim() || !position.trim()) {
-      setError("请填写公司和职位");
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      if (job) {
-        await updateJob(job.id, { company, position, status, url, notes });
-      } else {
-        const appliedAt = new Date(`${appliedDate}T00:00:00`).getTime();
-        await createJob({
-          company,
-          position,
-          status,
-          url,
-          notes,
-          appliedAt: Number.isFinite(appliedAt) ? appliedAt : Date.now(),
-        });
-      }
-      onSaved();
-      onClose();
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setBusy(false);
-    }
-  };
+  const { company, setCompany, position, setPosition, status, setStatus, url, setUrl, notes, setNotes,
+    appliedDate, setAppliedDate, busy, error, save } = useJobForm(open, job, fallback, onSaved, onClose);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{job ? "编辑投递" : "添加投递"}</DialogTitle>
           <DialogDescription className="sr-only">投递记录</DialogDescription>
@@ -129,7 +79,7 @@ export function JobFormDialog({
             </div>
             <div className="flex flex-col gap-1">
               <Label className="text-xs">投递日期</Label>
-              <Input type="date" value={appliedDate} onChange={(e) => setAppliedDate(e.target.value)} />
+              <Input type="date" value={appliedDate} disabled={status === "preparing"} onChange={(e) => setAppliedDate(e.target.value)} />
             </div>
           </div>
           <div className="flex flex-col gap-1">
@@ -146,6 +96,7 @@ export function JobFormDialog({
               className="resize-none"
             />
           </div>
+          <JobSourceDetails extras={job?.extras ?? null} />
           {error && <p className="text-xs text-red-400">{error}</p>}
         </div>
         <DialogFooter>

@@ -57,7 +57,7 @@ export function CloseConfirmDialog({ open, onClose }: Props) {
             <Power className="size-4" />
             退出程序
           </Button>
-          <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground/45">
+          <p className="mt-1 text-ui-10 leading-relaxed text-muted-foreground/45">
             关到托盘后应用继续运行，点托盘图标可重新打开；要彻底退出也可用托盘菜单。
           </p>
         </div>

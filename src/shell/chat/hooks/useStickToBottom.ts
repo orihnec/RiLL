@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChatMsg } from "../../../kernel/agent/types";
+import { useThemeStore } from "../../../stores/themeStore";
 
 /**
  * 滚动跟随：只有用户钉在底部时才自动跟随（向上翻阅历史不会被流式内容拽走）。
@@ -17,6 +18,7 @@ export function useStickToBottom({
   view: string;
 }) {
   const listRef = useRef<HTMLDivElement>(null);
+  const fontSize = useThemeStore((s) => s.fontSize);
   const pinnedRef = useRef(true);
   const prevStatusRef = useRef(status);
   const [atBottom, setAtBottom] = useState(true);
@@ -28,7 +30,7 @@ export function useStickToBottom({
     if (status === "streaming" && prevStatusRef.current !== "streaming") pinnedRef.current = true;
     prevStatusRef.current = status;
     if (pinnedRef.current) el.scrollTop = el.scrollHeight;
-  }, [messages, status, open, view]);
+  }, [messages, status, open, view, fontSize]);
 
   const onScroll = () => {
     const el = listRef.current;

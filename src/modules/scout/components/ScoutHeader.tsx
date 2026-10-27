@@ -37,7 +37,7 @@ export function ScoutHeader({
       {/* 一行：统计 + 抓取/刷新/清空（标题由求职中心的页签承担，这里不再重复） */}
       <div className="flex shrink-0 items-center gap-1.5 px-4 pb-2 pt-2.5">
         {stats && (
-          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
+          <div className="flex items-center gap-1.5 text-ui-10 text-muted-foreground/60">
             <span className="rounded-full border border-white/10 bg-white/4 px-2 py-0.5">
               收录 <span className="tabular-nums text-foreground/80">{stats.total}</span>
             </span>
@@ -56,7 +56,7 @@ export function ScoutHeader({
         <div className="ml-auto flex items-center gap-1.5">
           <Button
             size="sm"
-            className="h-7 px-2.5 text-[11px]"
+            className="h-7 px-2.5 text-ui-11"
             onClick={onCrawl}
             disabled={crawling}
             title={`从 ${CAMPUS_PAGE_URL} 抓取全部数据分片并去重入库`}
@@ -77,7 +77,7 @@ export function ScoutHeader({
             variant="outline"
             onClick={onClear}
             disabled={!canClear}
-            className={cn("h-7 px-2 text-[10px]", confirmClear && "border-red-400/40 bg-red-500/15 text-red-300")}
+            className={cn("h-7 px-2 text-ui-10", confirmClear && "border-red-400/40 bg-red-500/15 text-red-300")}
           >
             <Trash2 className="size-3" />
             {confirmClear ? "确认清空？" : "清空"}
@@ -87,7 +87,7 @@ export function ScoutHeader({
 
       {crawling && (
         <div className="shrink-0 px-4 pb-2">
-          <p className="flex items-center gap-1.5 text-[11px] text-indigo-300/80">
+          <p className="flex items-center gap-1.5 text-ui-11 text-indigo-300/80">
             <Loader2 className="size-3 animate-spin" />
             {crawlMsg ?? "抓取中…"}
             {progress && (
@@ -108,7 +108,7 @@ export function ScoutHeader({
       {tip && (
         <div
           className={cn(
-            "mx-4 mb-1.5 shrink-0 rounded-lg border px-2.5 py-1.5 text-[11px]",
+            "mx-4 mb-1.5 shrink-0 rounded-lg border px-2.5 py-1.5 text-ui-11",
             tip.kind === "ok"
               ? "border-emerald-400/25 bg-emerald-400/8 text-emerald-200"
               : "border-red-400/30 bg-red-500/10 text-red-200",

@@ -2,6 +2,8 @@ import { z } from "zod";
 import type { Tool } from "../../kernel/agent/types";
 import { createJob, filterJobs, listJobs, updateJob } from "./service";
 import { jobStatusLabel, resolveJobStatusId, useJobStatusStore } from "./statusStore";
+import { formatAppliedAt } from "./format";
+import { compareAppliedDates, isRecentApplication } from "./date";
 
 /** 当前状态名称列表（用于识别失败时反馈给模型）。 */
 function statusHint(): string {
@@ -38,7 +40,7 @@ function fmtJobs(jobs: Awaited<ReturnType<typeof listJobs>>, title: string): str
       .map(
         (j, i) =>
           `${i + 1}. 【${jobStatusLabel(j.status)}】${j.company} — ${j.position}` +
-          `（投递于 ${new Date(j.applied_at).toLocaleDateString("zh-CN")}）` +
+          `（投递日期 ${formatAppliedAt(j.applied_at)}）` +
           (j.url ? `\n   链接：${j.url}` : "") +
           (j.notes ? `\n   备注：${j.notes.slice(0, 120)}` : "") +
           `\n   id: ${j.id}`,
@@ -172,13 +174,15 @@ const jobs_stats: Tool = {
     for (const j of all) byStatus.set(j.status, (byStatus.get(j.status) ?? 0) + 1);
     const counts = [...byStatus.entries()].map(([id, n]) => `${jobStatusLabel(id)} ${n}`).join(" · ");
     const weekAgo = Date.now() - 7 * 24 * 3600_000;
-    const week = all.filter((j) => j.applied_at >= weekAgo).length;
+    const week = all.filter((j) => isRecentApplication(j, weekAgo)).length;
     const recent = [...all]
-      .sort((a, b) => b.applied_at - a.applied_at)
+      .filter((j) => j.status !== "preparing")
+      .sort((a, b) => compareAppliedDates(a.applied_at, b.applied_at, "desc"))
       .slice(0, 5)
       .map((j) => `${jobStatusLabel(j.status)}｜${j.company} — ${j.position}`)
       .join("\n");
-    return `共 ${all.length} 条投递（近 7 天新增 ${week} 条）\n按状态：${counts}\n最近 5 条：\n${recent}`;
+    const preparing = all.filter((j) => j.status === "preparing").length;
+    return `共 ${all.length} 条求职记录（已投 ${all.length - preparing}，待投 ${preparing}；近 7 天真实投递 ${week} 条）\n按状态：${counts}\n最近 5 条投递：\n${recent}`;
   },
 };
 

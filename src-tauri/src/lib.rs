@@ -1,9 +1,14 @@
 // 纯壳（shell）：只注册 Tauri 插件，不写任何业务逻辑。
 // 业务逻辑全部在 TS 侧（kernel / modules）。
 // 例外：mail 模块的 IMAP 读信（TCP+TLS，webview 里的 JS 碰不到）。
+// jobs_feishu 仅补充 OAuth 的本机回调监听，不持有客户端密钥或访问令牌。
+// jobs_import 复用 SQL 插件连接池，补充多表原子提交、快照校验与有条件撤销。
 
 mod attach;
 mod error;
+mod jobs_feishu;
+mod jobs_feishu_lock;
+mod jobs_import;
 mod mail;
 mod window;
 
@@ -23,8 +28,20 @@ fn quit(app: tauri::AppHandle) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(jobs_feishu::FeishuCallback::default())
         .invoke_handler(tauri::generate_handler![
             quit,
+            jobs_feishu::jobs_feishu_start_callback,
+            jobs_feishu::jobs_feishu_wait_callback,
+            jobs_feishu::jobs_feishu_cancel_callback,
+            jobs_feishu_lock::jobs_feishu_credentials_acquire,
+            jobs_feishu_lock::jobs_feishu_credentials_release,
+            jobs_import::jobs_import_backup,
+            jobs_import::jobs_import_stage,
+            jobs_import::jobs_import_commit,
+            jobs_import::jobs_import_undo_preview,
+            jobs_import::jobs_import_undo,
+            jobs_import::jobs_import_cleanup,
             attach::attach_extract,
             mail::mail_test_account,
             mail::mail_sync_headers,

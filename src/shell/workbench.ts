@@ -1,8 +1,10 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from "react";
 import {
   Briefcase,
+  BookOpen,
   CalendarDays,
   CheckSquare,
+  Download,
   Library,
   Mail,
   Settings,
@@ -10,6 +12,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { AppView } from "../stores/uiStore";
+import { useJobImportStore } from "../modules/jobs/import/store";
+import { openInterviews } from "../modules/interviews";
 
 /**
  * ★ 工作台注册表：主区视图的唯一事实来源。
@@ -35,6 +39,7 @@ export interface WorkbenchEntry {
   hideInRail?: boolean;
   /** 懒加载视图（重组件走分包） */
   Component: LazyExoticComponent<ComponentType>;
+  actions?: { id: string; label: string; icon: LucideIcon; run: () => void }[];
 }
 
 const SettingsView = lazy(() =>
@@ -84,10 +89,13 @@ export const WORKBENCH: WorkbenchEntry[] = [
     label: "求职",
     title: "求职中心",
     icon: Briefcase,
-    keywords: ["求职", "投递", "jobs", "offer", "面试", "校招", "信息库", "scout", "抓取"],
-    hint: "求职中心（准备投递 · 已投递看板 · 校招信息库）",
+    keywords: ["求职", "投递", "jobs", "offer", "面试", "面经", "复盘", "校招", "信息库", "scout", "抓取"],
+    hint: "求职中心（准备投递 · 已投递 · 面经 · 校招信息库）",
     sidebarRank: 10,
     Component: JobsBoard,
+    actions: [{ id: "jobs.importFeishu", label: "从飞书导入", icon: Download,
+      run: () => useJobImportStore.getState().openDialog() },
+      { id: "jobs.recordInterview", label: "记录面经", icon: BookOpen, run: () => openInterviews(undefined, true) }],
   },
   {
     id: "todo",

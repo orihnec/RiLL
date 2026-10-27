@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { errMsg } from "../../../lib/error";
 import {
   ChevronLeft,
@@ -19,6 +19,7 @@ import { cn } from "../../../lib/utils";
 import { openExternalLink } from "../../../lib/url";
 import { save as saveFileDialog } from "@tauri-apps/plugin-dialog";
 import { linksFromText, sanitizeMailHtml } from "../sanitize";
+import { useMailFrame } from "../hooks/useMailFrame";
 import {
   fetchBody,
   getAccount,
@@ -61,7 +62,7 @@ export function MessageReader({
   const message = messages[index] ?? null;
   const [showImages, setShowImages] = useState(false);
   const [loadingBody, setLoadingBody] = useState(false);
-  const frameRef = useRef<HTMLIFrameElement>(null);
+  const { frameRef, height, onLoad } = useMailFrame();
 
   useEffect(() => {
     // 换邮件时重置"显示图片"
@@ -140,8 +141,8 @@ export function MessageReader({
       >
         <DialogHeader className="flex shrink-0 flex-row items-center gap-2 border-b border-white/6 px-3 py-2 text-left">
           <div className="min-w-0 flex-1">
-            <DialogTitle className="truncate text-[13px]">{message.subject}</DialogTitle>
-            <p className="truncate text-[11px] text-muted-foreground/60">
+            <DialogTitle className="truncate text-ui-13">{message.subject}</DialogTitle>
+            <p className="truncate text-ui-11 text-muted-foreground/60">
               {message.fromName ? `${message.fromName} · ` : ""}
               {message.fromAddress}
               {message.toAddress ? ` → ${message.toAddress}` : ""} ·{" "}
@@ -161,7 +162,7 @@ export function MessageReader({
                 >
                   <ChevronLeft className="size-4" />
                 </button>
-                <span className="px-0.5 text-[10px] tabular-nums text-muted-foreground/50">
+                <span className="px-0.5 text-ui-10 tabular-nums text-muted-foreground/50">
                   {index + 1}/{messages.length}
                 </span>
                 <button
@@ -198,18 +199,18 @@ export function MessageReader({
         <div className="min-h-0 flex-1 overflow-y-auto p-3">
           {!message.bodyFetchedAt && (
             <div className="flex items-center gap-2 py-3">
-              <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => void loadBody()} disabled={loadingBody}>
+              <Button size="sm" variant="outline" className="h-7 text-ui-11" onClick={() => void loadBody()} disabled={loadingBody}>
                 {loadingBody ? <Loader2 className="size-3 animate-spin" /> : <CloudDownload className="size-3" />}
                 读取正文
               </Button>
-              <span className="text-[10px] text-muted-foreground/45">正文按需下载，读过就缓存在本地</span>
+              <span className="text-ui-10 text-muted-foreground/45">正文按需下载，读过就缓存在本地</span>
             </div>
           )}
 
           {blocked > 0 && !showImages && (
             <button
               onClick={() => setShowImages(true)}
-              className="mb-2 flex items-center gap-1 rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-[10px] text-amber-200"
+              className="mb-2 flex items-center gap-1 rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-ui-10 text-amber-200"
             >
               远程图片已拦截 {blocked} 张（避免对方收到"已读回执"）· 点此显示
             </button>
@@ -222,26 +223,17 @@ export function MessageReader({
               sandbox="allow-same-origin"
               scrolling="no"
               srcDoc={sanitized.html}
-              onLoad={() => {
-                const el = frameRef.current;
-                try {
-                  // 阅读视图里给足高度：能显示多少显示多少，不做 360px 折叠
-                  const h = el?.contentDocument?.documentElement?.scrollHeight ?? 0;
-                  if (el && h > 0) el.style.height = `${h + 16}px`;
-                } catch {
-                  /* 读不到就保持默认 */
-                }
-              }}
+              onLoad={onLoad}
               className="w-full rounded-lg border border-white/8"
-              style={{ background: "#ffffff", colorScheme: "light" }}
+              style={{ height, background: "#ffffff", colorScheme: "light" }}
             />
           ) : message.bodyText ? (
-            <pre className="whitespace-pre-wrap break-words font-sans text-[13px] leading-relaxed text-foreground/90">
+            <pre className="whitespace-pre-wrap break-words font-sans text-ui-13 leading-relaxed text-foreground/90">
               {message.bodyText}
             </pre>
           ) : (
             !message.bodyFetchedAt && (
-              <p className="py-6 text-center text-[11px] text-muted-foreground/50">点上面的「读取正文」把内容取下来</p>
+              <p className="py-6 text-center text-ui-11 text-muted-foreground/50">点上面的「读取正文」把内容取下来</p>
             )
           )}
 
@@ -251,11 +243,11 @@ export function MessageReader({
                 <button
                   key={a.index}
                   onClick={() => void save(a.index, a.name)}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/4 px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-white/8 hover:text-foreground"
+                  className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/4 px-2 py-1 text-ui-11 text-muted-foreground transition hover:bg-white/8 hover:text-foreground"
                 >
                   <Download className="size-3" />
                   <span className="max-w-[220px] truncate">{a.name}</span>
-                  <span className="text-[10px] text-muted-foreground/50">{Math.round(a.size / 1024)} KB</span>
+                  <span className="text-ui-10 text-muted-foreground/50">{Math.round(a.size / 1024)} KB</span>
                 </button>
               ))}
             </div>
@@ -263,7 +255,7 @@ export function MessageReader({
 
           {links.length > 0 && (
             <div className="mt-3 rounded-lg border border-white/6 bg-white/2 p-2">
-              <p className="mb-1 flex items-center gap-1 text-[10px] text-muted-foreground/50">
+              <p className="mb-1 flex items-center gap-1 text-ui-10 text-muted-foreground/50">
                 <Link2 className="size-3" />
                 正文里的链接（点击前请自行确认，邮件链接可能是钓鱼）
               </p>
@@ -272,7 +264,7 @@ export function MessageReader({
                   <button
                     key={l.href}
                     onClick={() => void openExternalLink(l.href)}
-                    className="flex max-w-[300px] items-center gap-1 rounded-md border border-white/8 px-1.5 py-0.5 text-[10px] text-indigo-300 transition hover:bg-white/6"
+                    className="flex max-w-[300px] items-center gap-1 rounded-md border border-white/8 px-1.5 py-0.5 text-ui-10 text-indigo-300 transition hover:bg-white/6"
                     title={l.href}
                   >
                     <ExternalLink className="size-2.5 shrink-0" />
@@ -284,7 +276,7 @@ export function MessageReader({
           )}
 
           {message.attachments.length === 0 && !message.bodyFetchedAt && (
-            <p className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground/40">
+            <p className="mt-2 flex items-center gap-1 text-ui-10 text-muted-foreground/40">
               <Paperclip className="size-3" />
               正文没下载时看不到附件列表
             </p>

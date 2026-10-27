@@ -27,7 +27,7 @@ export function LinkFillPicker({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>选择 {job?.company} 的招聘链接</DialogTitle>
-          <DialogDescription className="text-[11px]">
+          <DialogDescription className="text-ui-11">
             优先校招官网与公众号招聘信息，点击一条填入（或取消）
           </DialogDescription>
         </DialogHeader>
@@ -43,12 +43,12 @@ export function LinkFillPicker({
                   {r.title || r.url}
                 </span>
                 {r.url.includes("mp.weixin.qq.com") && (
-                  <span className="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-1.5 py-px text-[9px] text-emerald-300">
+                  <span className="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-1.5 py-px text-ui-9 text-emerald-300">
                     公众号
                   </span>
                 )}
               </div>
-              <span className="truncate font-mono text-[10px] text-muted-foreground/60">{r.url}</span>
+              <span className="truncate font-mono text-ui-10 text-muted-foreground/60">{r.url}</span>
             </button>
           ))}
         </div>

@@ -29,3 +29,7 @@ src-tauri/gen/
 release/
 *.msi
 *.dmg
+
+# Local Feishu exports contain private records and application links
+FEISHU-P0-RESULT*.json
+FEISHU-IMPORT-BUILD.json

@@ -6,7 +6,6 @@ import {
   ACCENTS,
   DARK_BACKGROUNDS,
   LIGHT_BACKGROUNDS,
-  RADII,
   CUSTOM_ACCENT_ID,
   CUSTOM_BACKGROUND_ID,
   accentPreview,
@@ -15,6 +14,7 @@ import {
   themeMode,
   type BackgroundTheme,
 } from "../lib/themes";
+import { FONT_SIZES, FONT_SCALES } from "../lib/typography";
 import { useThemeStore } from "../stores/themeStore";
 
 /** 背景风格预览小方块（用该风格自己的渐变）。 */
@@ -38,7 +38,7 @@ function BackgroundChip({
       onClick={onClick}
       title={preset.name}
       className={cn(
-        "flex flex-col items-center gap-1 rounded-lg border px-1.5 py-1.5 text-[10px] transition",
+        "flex flex-col items-center gap-1 rounded-lg border px-1.5 py-1.5 text-ui-10 transition",
         active
           ? "border-indigo-400/50 bg-indigo-400/10 text-indigo-200"
           : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -95,17 +95,17 @@ function CustomColor({
         onKeyDown={(e) => e.key === "Enter" && commit()}
         placeholder="#rrggbb"
         className={cn(
-          "h-6 w-20 bg-transparent font-mono text-[10px] outline-none",
+          "h-6 w-20 bg-transparent font-mono text-ui-10 outline-none",
           valid ? "text-foreground/85" : "text-red-300",
         )}
       />
-      <span className="truncate text-[9px] text-muted-foreground/45">{hint}</span>
+      <span className="truncate text-ui-9 text-muted-foreground/45">{hint}</span>
     </div>
   );
 }
 
 /**
- * 顶栏「主题与风格」入口：主题色（预设 + 自定义）/ 背景色系（深色系 / 浅色系 + 自定义）/ 圆角。
+ * 顶栏「主题与风格」入口：主题色（预设 + 自定义）/ 背景色系（深色系 / 浅色系 + 自定义）/ 字号。
  * 点一下立即生效并持久化；同一份配置智能体也能改（modules/theme/tools.ts）。
  */
 export function ThemeButton() {
@@ -114,16 +114,17 @@ export function ThemeButton() {
   const background = useThemeStore((s) => s.background);
   const backgroundHex = useThemeStore((s) => s.backgroundHex);
   const radius = useThemeStore((s) => s.radius);
+  const fontSize = useThemeStore((s) => s.fontSize);
   const panelOpen = useThemeStore((s) => s.panelOpen);
   const setPanelOpen = useThemeStore((s) => s.setPanelOpen);
   const setAccent = useThemeStore((s) => s.setAccent);
   const setAccentHex = useThemeStore((s) => s.setAccentHex);
   const setBackground = useThemeStore((s) => s.setBackground);
   const setBackgroundHex = useThemeStore((s) => s.setBackgroundHex);
-  const setRadius = useThemeStore((s) => s.setRadius);
+  const setFontSize = useThemeStore((s) => s.setFontSize);
   const reset = useThemeStore((s) => s.reset);
 
-  const mode = themeMode({ accent, accentHex, background, backgroundHex, radius });
+  const mode = themeMode({ accent, accentHex, background, backgroundHex, radius, fontSize });
   const previewColor = accent === CUSTOM_ACCENT_ID
     ? (hexToOklch(accentHex) ? accentPreview({ id: "x", name: "x", hue: hexToOklch(accentHex)!.h, chroma: hexToOklch(accentHex)!.c / 0.16 }) : accentHex)
     : accentPreview(ACCENTS.find((a) => a.id === accent) ?? ACCENTS[0]);
@@ -132,7 +133,7 @@ export function ThemeButton() {
     <Popover open={panelOpen} onOpenChange={setPanelOpen}>
       <PopoverTrigger asChild>
         <button
-          title="主题与风格（深浅色系 / 自定义颜色）"
+          title="主题与风格（深浅色系 / 自定义颜色 / 字号大小）"
           className={cn(
             "flex size-7 items-center justify-center rounded-lg outline-none transition",
             panelOpen
@@ -147,12 +148,12 @@ export function ThemeButton() {
         <div className="mb-2 flex items-center gap-1.5">
           <Palette className="size-3.5 text-indigo-300" />
           <span className="text-xs font-semibold">主题与风格</span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-1.5 py-px text-[9px] text-muted-foreground">
+          <span className="rounded-full border border-white/10 bg-white/5 px-1.5 py-px text-ui-9 text-muted-foreground">
             {mode === "light" ? "浅色系" : "深色系"}
           </span>
           <button
             onClick={reset}
-            className="ml-auto flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] text-muted-foreground transition hover:bg-white/8 hover:text-foreground"
+            className="ml-auto flex items-center gap-1 rounded-md px-1.5 py-0.5 text-ui-10 text-muted-foreground transition hover:bg-white/8 hover:text-foreground"
           >
             <RotateCcw className="size-3" />
             恢复默认
@@ -160,7 +161,7 @@ export function ThemeButton() {
         </div>
 
         {/* 主题色 */}
-        <div className="mb-1 text-[10px] text-muted-foreground/60">主题色（强调色）</div>
+        <div className="mb-1 text-ui-10 text-muted-foreground/60">主题色（强调色）</div>
         <div className="mb-1.5 grid grid-cols-10 gap-1">
           {ACCENTS.map((a) => (
             <button
@@ -187,7 +188,7 @@ export function ThemeButton() {
         </div>
 
         {/* 背景：深色系 */}
-        <div className="mb-1 text-[10px] text-muted-foreground/60">背景 · 深色系</div>
+        <div className="mb-1 text-ui-10 text-muted-foreground/60">背景 · 深色系</div>
         <div className="mb-2 flex flex-wrap gap-1.5">
           {DARK_BACKGROUNDS.map((b) => (
             <BackgroundChip
@@ -201,7 +202,7 @@ export function ThemeButton() {
         </div>
 
         {/* 背景：浅色系 */}
-        <div className="mb-1 text-[10px] text-muted-foreground/60">背景 · 浅色系</div>
+        <div className="mb-1 text-ui-10 text-muted-foreground/60">背景 · 浅色系</div>
         <div className="mb-2 flex flex-wrap gap-1.5">
           {LIGHT_BACKGROUNDS.map((b) => (
             <BackgroundChip
@@ -223,27 +224,30 @@ export function ThemeButton() {
           />
         </div>
 
-        {/* 圆角 */}
-        <div className="mb-1 text-[10px] text-muted-foreground/60">圆角</div>
-        <div className="flex gap-1.5">
-          {RADII.map((r) => (
+        {/* 字号大小 */}
+        <div id="font-size-label" className="mb-1 text-ui-10 text-muted-foreground/60">字号大小</div>
+        <div role="group" aria-labelledby="font-size-label" className="flex gap-1.5">
+          {FONT_SIZES.map((s) => (
             <button
-              key={r.id}
-              onClick={() => setRadius(r.id)}
+              key={s.id}
+              onClick={() => setFontSize(s.id)}
+              aria-pressed={fontSize === s.id}
               className={cn(
-                "flex-1 rounded-lg border px-2 py-1 text-[11px] transition",
-                radius === r.id
+                "flex-1 rounded-lg border px-2 py-1 text-ui-11 transition",
+                fontSize === s.id
                   ? "border-indigo-400/50 bg-indigo-400/10 text-indigo-200"
                   : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
               )}
             >
-              {r.name}
+              {s.name}
+              <span className="ml-1 opacity-70">{Math.round(FONT_SCALES[s.id] * 100)}%</span>
             </button>
           ))}
         </div>
 
-        <p className="mt-2.5 text-[10px] leading-relaxed text-muted-foreground/45">
+        <p className="mt-2.5 text-ui-10 leading-relaxed text-muted-foreground/45">
           主题色会同时改变按钮、选中态、标签与背景环境光；浅色系会自动把面板与描边切换成深色淡墨。
+          字号大小应用于整个应用。
           设置立即生效并自动保存，也可以直接对 AI 说「把主题换成青绿色浅色系」。
         </p>
       </PopoverContent>

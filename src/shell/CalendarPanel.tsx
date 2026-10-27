@@ -38,7 +38,7 @@ export function CalendarPanel() {
     });
   };
 
-  const line = "flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground/70 transition hover:text-foreground";
+  const line = "flex items-center gap-1.5 px-1 text-ui-11 text-muted-foreground/70 transition hover:text-foreground";
 
   return (
     <aside className="flex w-52 shrink-0 flex-col gap-3 overflow-y-auto border-r border-white/6 p-3">

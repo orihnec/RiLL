@@ -1,0 +1,1 @@
+ALTER TABLE job_applications ADD COLUMN revision INTEGER NOT NULL DEFAULT 0;

@@ -18,7 +18,7 @@ export function ToolRow({ tc }: { tc: ToolCallView }) {
       <button
         onClick={() => expandable && setOpen(!open)}
         className={cn(
-          "flex w-full items-center gap-1 rounded-md px-1 py-[3px] text-left text-[10.5px] transition",
+          "flex w-full items-center gap-1 rounded-md px-1 py-[3px] text-left text-ui-10-5 transition",
           expandable ? "hover:bg-white/5" : "cursor-default",
         )}
       >
@@ -30,7 +30,7 @@ export function ToolRow({ tc }: { tc: ToolCallView }) {
           <AlertCircle className="size-2.5 shrink-0 text-red-400" />
         )}
         <Wrench className="size-2.5 shrink-0 text-muted-foreground/40" />
-        <span className="shrink-0 font-mono text-[10px] text-indigo-200/90">{tc.name}</span>
+        <span className="shrink-0 font-mono text-ui-10 text-indigo-200/90">{tc.name}</span>
         <span
           className={cn(
             "min-w-0 flex-1 truncate",
@@ -39,7 +39,7 @@ export function ToolRow({ tc }: { tc: ToolCallView }) {
         >
           {failureLine ?? (tc.status === "running" ? summary || "执行中…" : summary)}
         </span>
-        <span className="shrink-0 tabular-nums text-[9px] text-muted-foreground/40">
+        <span className="shrink-0 tabular-nums text-ui-9 text-muted-foreground/40">
           {tc.status === "running" ? "执行中" : tc.status === "done" ? "完成" : "失败"}
         </span>
         {expandable && (
@@ -52,10 +52,10 @@ export function ToolRow({ tc }: { tc: ToolCallView }) {
         <div className="mb-1 ml-4 max-h-44 overflow-y-auto rounded-lg border border-white/8 bg-black/20">
           {hasArgs && (
             <div className="px-2 py-1">
-              <span className="mr-1.5 rounded bg-white/8 px-1 py-px font-mono text-[9px] text-muted-foreground/70">
+              <span className="mr-1.5 rounded bg-white/8 px-1 py-px font-mono text-ui-9 text-muted-foreground/70">
                 IN
               </span>
-              <pre className="mt-0.5 whitespace-pre-wrap font-mono text-[10px] leading-relaxed text-muted-foreground/80">
+              <pre className="mt-0.5 whitespace-pre-wrap font-mono text-ui-10 leading-relaxed text-muted-foreground/80">
                 {JSON.stringify(tc.args, null, 1)}
               </pre>
             </div>
@@ -63,10 +63,10 @@ export function ToolRow({ tc }: { tc: ToolCallView }) {
           {hasArgs && tc.result && <div className="mx-2 h-px bg-white/6" aria-hidden />}
           {tc.result && (
             <div className="px-2 py-1">
-              <span className="mr-1.5 rounded bg-white/8 px-1 py-px font-mono text-[9px] text-muted-foreground/70">
+              <span className="mr-1.5 rounded bg-white/8 px-1 py-px font-mono text-ui-9 text-muted-foreground/70">
                 OUT
               </span>
-              <pre className="mt-0.5 whitespace-pre-wrap font-mono text-[10px] leading-relaxed text-muted-foreground/80">
+              <pre className="mt-0.5 whitespace-pre-wrap font-mono text-ui-10 leading-relaxed text-muted-foreground/80">
                 {tc.result}
               </pre>
             </div>

@@ -1,6 +1,21 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* 字号单独缩放，时间网格、图标与面板尺寸保持各自的坐标系。 */
+  --text-xs: calc(12px * var(--font-scale));
+  --text-sm: calc(14px * var(--font-scale));
+  --text-base: calc(16px * var(--font-scale));
+  --text-lg: calc(18px * var(--font-scale));
+  --text-ui-9: calc(9px * var(--font-scale));
+  --text-ui-9-5: calc(9.5px * var(--font-scale));
+  --text-ui-10: calc(10px * var(--font-scale));
+  --text-ui-10-5: calc(10.5px * var(--font-scale));
+  --text-ui-11: calc(11px * var(--font-scale));
+  --text-ui-11-5: calc(11.5px * var(--font-scale));
+  --text-ui-12: calc(12px * var(--font-scale));
+  --text-ui-12-5: calc(12.5px * var(--font-scale));
+  --text-ui-13: calc(13px * var(--font-scale));
+  --text-ui-15: calc(15px * var(--font-scale));
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -30,8 +45,9 @@
 }
 
 /* Dark-first 主题（单主题，无亮色模式）；下面的变量会被「主题与风格」面板在
-   documentElement 上内联覆盖（主题色/背景/圆角），此处的值即默认主题。 */
+   documentElement 上内联覆盖（主题色/背景/字号），此处的值即默认主题。 */
 :root {
+  --font-scale: 1.2;
   --background: #0b0d12;
   --foreground: #e7e9ee;
   --card: rgba(255, 255, 255, 0.045);
@@ -90,6 +106,7 @@
   }
   body {
     @apply text-foreground antialiased;
+    font-size: calc(16px * var(--font-scale));
     font-family:
       "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
       "PingFang SC", "Microsoft YaHei", sans-serif;

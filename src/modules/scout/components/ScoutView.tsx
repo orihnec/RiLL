@@ -152,7 +152,7 @@ export function ScoutView() {
             ) : (
               <>
                 信息库还是空的：点右上角「抓取并入库」一键抓取校招汇总数据（自动去重，可反复抓取刷新）
-                <span className="mt-1 text-[10px] text-muted-foreground/40">数据源：{CAMPUS_PAGE_URL}</span>
+                <span className="mt-1 text-ui-10 text-muted-foreground/40">数据源：{CAMPUS_PAGE_URL}</span>
               </>
             )}
           </div>

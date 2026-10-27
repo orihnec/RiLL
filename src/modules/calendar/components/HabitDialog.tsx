@@ -70,7 +70,7 @@ export function HabitDialog({ open, onClose }: { open: boolean; onClose: () => v
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-sm">习惯 · 每天固定的安排</DialogTitle>
-          <DialogDescription className="text-[11px]">
+          <DialogDescription className="text-ui-11">
             保存后会作为重复日程直接出现在日历里（每周按选中的星期重复），可拖拽调整时间。
           </DialogDescription>
         </DialogHeader>
@@ -107,13 +107,13 @@ export function HabitDialog({ open, onClose }: { open: boolean; onClose: () => v
               </div>
 
               <div className="flex items-center gap-1.5">
-                <Label className="mr-1 text-[11px] text-muted-foreground">重复</Label>
+                <Label className="mr-1 text-ui-11 text-muted-foreground">重复</Label>
                 {WEEKDAY_LABELS.map((label, d) => (
                   <button
                     key={d}
                     onClick={() => toggleDay(d)}
                     className={cn(
-                      "size-7 rounded-lg border text-[11px] transition",
+                      "size-7 rounded-lg border text-ui-11 transition",
                       days.includes(d)
                         ? "border-indigo-400/50 bg-indigo-400/15 text-indigo-200"
                         : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -125,7 +125,7 @@ export function HabitDialog({ open, onClose }: { open: boolean; onClose: () => v
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="ml-auto h-7 rounded-md border border-white/10 bg-white/4 px-2 text-[11px] outline-none"
+                  className="ml-auto h-7 rounded-md border border-white/10 bg-white/4 px-2 text-ui-11 outline-none"
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c.id} value={c.id} className="bg-popover">
@@ -135,11 +135,11 @@ export function HabitDialog({ open, onClose }: { open: boolean; onClose: () => v
                 </select>
               </div>
 
-              {error && <p className="text-[11px] text-red-400">{error}</p>}
+              {error && <p className="text-ui-11 text-red-400">{error}</p>}
 
               <Button
                 size="sm"
-                className="h-7 self-start px-2.5 text-[11px]"
+                className="h-7 self-start px-2.5 text-ui-11"
                 onClick={() => void save()}
                 disabled={busy || !title.trim() || days.length === 0}
               >
@@ -152,7 +152,7 @@ export function HabitDialog({ open, onClose }: { open: boolean; onClose: () => v
           {/* 已有 */}
           <div className="flex max-h-64 flex-col gap-1 overflow-y-auto">
             {habits.length === 0 && (
-              <p className="py-4 text-center text-[11px] text-muted-foreground/60">
+              <p className="py-4 text-center text-ui-11 text-muted-foreground/60">
                 还没有习惯。加一个「每天 09:00 刷题 60 分」试试。
               </p>
             )}
@@ -161,11 +161,11 @@ export function HabitDialog({ open, onClose }: { open: boolean; onClose: () => v
                 key={h.id}
                 className="flex items-center gap-2 rounded-lg border border-white/6 bg-white/3 px-2.5 py-1.5"
               >
-                <span className="text-[11px] tabular-nums text-muted-foreground">
+                <span className="text-ui-11 tabular-nums text-muted-foreground">
                   {habitTimeLabel(h.startMinutes)}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-xs">{h.title}</span>
-                <span className="shrink-0 text-[10px] text-muted-foreground/60">
+                <span className="shrink-0 text-ui-10 text-muted-foreground/60">
                   {h.days.length === 7
                     ? "每天"
                     : h.days.map((d) => WEEKDAY_LABELS[d]).join("")}
@@ -183,7 +183,7 @@ export function HabitDialog({ open, onClose }: { open: boolean; onClose: () => v
                   )}
                 >
                   {del.pendingKey === h.id ? (
-                    <span className="px-0.5 text-[9px]">确认？</span>
+                    <span className="px-0.5 text-ui-9">确认？</span>
                   ) : (
                     <Trash2 className="size-3.5" />
                   )}

@@ -53,7 +53,7 @@ export function MiniMonth({
       </div>
       <div className="grid grid-cols-7 gap-0.5 text-center">
         {["一", "二", "三", "四", "五", "六", "日"].map((w) => (
-          <span key={w} className="py-0.5 text-[10px] text-muted-foreground/70">
+          <span key={w} className="py-0.5 text-ui-10 text-muted-foreground/70">
             {w}
           </span>
         ))}
@@ -63,7 +63,7 @@ export function MiniMonth({
             onClick={() => setViewDate(d)}
             onContextMenu={(e) => onDayContextMenu?.(e, d)}
             className={cn(
-              "relative flex flex-col items-center rounded-md py-1 text-[11px] transition hover:bg-white/8",
+              "relative flex flex-col items-center rounded-md py-1 text-ui-11 transition hover:bg-white/8",
               !isSameMonth(d, viewDate) && "text-muted-foreground/30",
               isSameDay(d, viewDate) &&
                 "bg-indigo-500/25 font-semibold text-indigo-200 ring-1 ring-indigo-400/40",

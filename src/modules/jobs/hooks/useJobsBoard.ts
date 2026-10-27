@@ -6,12 +6,16 @@ import { deleteJob, listJobs, updateJob, type JobApplication } from "../service"
 import { filterJobs, searchTerms } from "../search";
 import { useJobStatusStore } from "../statusStore";
 import type { SortKey } from "../format";
+import { compareAppliedDates } from "../date";
+import { useJobsVersion } from "../changes";
+import { errMsg } from "../../../lib/error";
 
 /**
  * 求职看板的数据与筛选：列表、状态筛选、关键词（AND）、排序、补链接。
  * 弹窗开关与右键菜单属于视图，留在 JobsBoard 里。
  */
 export function useJobsBoard() {
+  const version = useJobsVersion((s) => s.version);
   const statuses = useJobStatusStore((s) => s.statuses);
 
   const [jobs, setJobs] = useState<JobApplication[]>([]);
@@ -23,6 +27,7 @@ export function useJobsBoard() {
     dir: "desc",
   });
   const searchRef = useRef<HTMLInputElement>(null);
+  const readVersion = useRef(0);
 
   const del = useTwoStepConfirm();
   const [linkState, setLinkState] = useState<Record<string, "busy" | "fail">>({});
@@ -32,17 +37,23 @@ export function useJobsBoard() {
   );
 
   const refresh = useCallback(async () => {
+    const request = ++readVersion.current;
     setLoading(true);
     try {
-      setJobs(await listJobs());
+      const jobs = (await listJobs()).filter((job) => job.status !== "preparing");
+      if (request === readVersion.current) setJobs(jobs);
+    } catch (error) { setLinkMsg(errMsg(error));
     } finally {
-      setLoading(false);
+      if (request === readVersion.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     void refresh();
-  }, [refresh]);
+    const onFocus = () => { void refresh(); };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [refresh, version]);
 
   // 状态被删/改名后，若当前筛选状态已不存在 → 回到全部
   useEffect(() => {
@@ -76,7 +87,7 @@ export function useJobsBoard() {
         case "status":
           return ((statusIndex[a.status] ?? 99) - (statusIndex[b.status] ?? 99)) * dir;
         default:
-          return (a.applied_at - b.applied_at) * dir;
+          return compareAppliedDates(a.applied_at, b.applied_at, sort.dir);
       }
     });
   }, [jobs, filter, sort, statusIndex, query, statuses]);

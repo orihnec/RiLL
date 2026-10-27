@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FolderOpen, FileText, FileUp, Loader2, Pencil, RefreshCw, Save, Eye, Folder } from "lucide-react";
 import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import { importFileToKb } from "../import";
-import CodeMirror from "@uiw/react-codemirror";
+import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { Button } from "../../../components/ui/button";
@@ -10,6 +10,10 @@ import { useKbStore } from "../../../stores/kbStore";
 import { useUiStore } from "../../../stores/uiStore";
 import { Markdown } from "../../../components/markdown";
 import { cn } from "../../../lib/utils";
+
+const editorTypography = EditorView.theme({
+  "&": { fontSize: "calc(14px * var(--font-scale))" },
+});
 
 /** 文档树：路径 + 索引状态角标。 */
 function DocTree() {
@@ -36,7 +40,7 @@ function DocTree() {
             key={d.path}
             onClick={() => void selectDoc(d.path)}
             className={cn(
-              "flex w-full items-center gap-1.5 rounded-lg px-2 py-1 text-left text-[11px] transition",
+              "flex w-full items-center gap-1.5 rounded-lg px-2 py-1 text-left text-ui-11 transition",
               active
                 ? "bg-indigo-400/15 text-indigo-200"
                 : "text-foreground/75 hover:bg-white/6 hover:text-foreground",
@@ -91,13 +95,13 @@ function DocPane() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-1.5 border-b border-white/6 px-2 py-1.5">
-        <span className="min-w-0 flex-1 truncate font-mono text-[10px] text-muted-foreground/70">
+        <span className="min-w-0 flex-1 truncate font-mono text-ui-10 text-muted-foreground/70">
           {selected}
         </span>
         <button
           onClick={() => setMode("preview")}
           className={cn(
-            "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] transition",
+            "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-ui-10 transition",
             mode === "preview"
               ? "bg-indigo-400/15 text-indigo-200"
               : "text-muted-foreground hover:text-foreground",
@@ -108,7 +112,7 @@ function DocPane() {
         <button
           onClick={() => setMode("edit")}
           className={cn(
-            "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] transition",
+            "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-ui-10 transition",
             mode === "edit"
               ? "bg-indigo-400/15 text-indigo-200"
               : "text-muted-foreground hover:text-foreground",
@@ -117,7 +121,7 @@ function DocPane() {
           <Pencil className="size-3" /> 编辑
         </button>
         {mode === "edit" && (
-          <Button size="sm" variant="outline" onClick={() => void save()} className="h-6 px-2 text-[10px]">
+          <Button size="sm" variant="outline" onClick={() => void save()} className="h-6 px-2 text-ui-10">
             {saved ? "已保存" : <><Save className="size-3" /> 保存并索引</>}
           </Button>
         )}
@@ -131,7 +135,7 @@ function DocPane() {
               value={content}
               height="100%"
               theme={oneDark}
-              extensions={[markdown()]}
+              extensions={[markdown(), editorTypography]}
               onChange={(v) => useKbStore.setState((s) => ({ drafts: { ...s.drafts, [selected]: v } }))}
               basicSetup={{ lineNumbers: true, foldGutter: true, highlightActiveLine: true }}
             />
@@ -202,10 +206,10 @@ export function KbView() {
       <div className="flex shrink-0 items-center gap-2">
         <Folder className="size-4 text-indigo-300" />
         <span className="text-sm font-semibold">知识库</span>
-        <span className="text-[10px] text-muted-foreground/60">本地 Markdown · 增量索引 · 混合检索</span>
+        <span className="text-ui-10 text-muted-foreground/60">本地 Markdown · 增量索引 · 混合检索</span>
         <button
           onClick={() => useUiStore.getState().setAppView("calendar")}
-          className="ml-auto rounded-lg px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-white/8 hover:text-foreground"
+          className="ml-auto rounded-lg px-2 py-1 text-ui-11 text-muted-foreground transition hover:bg-white/8 hover:text-foreground"
         >
           回到日历
         </button>
@@ -215,7 +219,7 @@ export function KbView() {
           {/* 左：文件夹 + 文档树 */}
           <div className="flex w-60 shrink-0 flex-col gap-2">
             <div className="flex flex-col gap-1.5 rounded-xl border border-white/8 bg-white/3 p-2">
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-ui-11 text-muted-foreground">
                 <FolderOpen className="size-3 shrink-0" />
                 <span className="truncate" title={rootPath ?? undefined}>
                   {rootPath ?? "未选择文件夹"}
@@ -226,7 +230,7 @@ export function KbView() {
                   size="sm"
                   variant="outline"
                   onClick={() => void pickFolder()}
-                  className="h-7 flex-1 text-[11px]"
+                  className="h-7 flex-1 text-ui-11"
                 >
                   <FolderOpen className="size-3" /> 选择文件夹
                 </Button>
@@ -235,7 +239,7 @@ export function KbView() {
                   variant="outline"
                   onClick={() => void importFiles()}
                   disabled={!rootPath || importing}
-                  className="h-7 flex-1 text-[11px]"
+                  className="h-7 flex-1 text-ui-11"
                   title="导入 PDF / Word / 文本：抽取正文写成 .md，再自动索引"
                 >
                   {importing ? <Loader2 className="size-3 animate-spin" /> : <FileUp className="size-3" />}
@@ -243,7 +247,7 @@ export function KbView() {
                 </Button>
               </div>
               {importMsg && (
-                <p className="truncate text-[10px] text-indigo-300/80" title={importMsg}>
+                <p className="truncate text-ui-10 text-indigo-300/80" title={importMsg}>
                   {importMsg}
                 </p>
               )}
@@ -253,19 +257,19 @@ export function KbView() {
                   variant="outline"
                   onClick={() => void scan()}
                   disabled={!rootPath || indexing}
-                  className="h-7 flex-1 text-[11px]"
+                  className="h-7 flex-1 text-ui-11"
                 >
                   {indexing ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />}
                   立即索引
                 </Button>
               </div>
               {lastIndexAt && (
-                <div className="text-[10px] text-muted-foreground/60">
+                <div className="text-ui-10 text-muted-foreground/60">
                   上次索引：{new Date(lastIndexAt).toLocaleTimeString("zh-CN")}
                 </div>
               )}
               {indexMsg && (
-                <div className="truncate text-[10px] text-indigo-300/80" title={indexMsg}>
+                <div className="truncate text-ui-10 text-indigo-300/80" title={indexMsg}>
                   索引中：{indexMsg.split(/[\\/]/).pop()}
                 </div>
               )}

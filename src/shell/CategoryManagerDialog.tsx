@@ -101,7 +101,7 @@ export function CategoryManagerDialog({ open, onClose }: Props) {
                     : "text-muted-foreground/60 hover:bg-white/8 hover:text-red-300",
                 )}
               >
-                {confirmDel === c.id ? <span className="px-0.5 text-[10px]">确认？</span> : <Trash2 className="size-3.5" />}
+                {confirmDel === c.id ? <span className="px-0.5 text-ui-10">确认？</span> : <Trash2 className="size-3.5" />}
               </button>
             </div>
           ))}

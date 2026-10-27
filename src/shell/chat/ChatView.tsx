@@ -82,8 +82,8 @@ export function ChatView() {
       <aside className="hidden w-56 shrink-0 flex-col border-r border-white/6 lg:flex">
         <div className="flex shrink-0 items-center gap-1.5 border-b border-white/6 px-3 py-2">
           <MessageSquare className="size-3.5 text-muted-foreground/60" />
-          <span className="text-[11px] font-semibold text-muted-foreground/70">会话</span>
-          <span className="tabular-nums text-[10px] text-muted-foreground/40">{sessions.length}</span>
+          <span className="text-ui-11 font-semibold text-muted-foreground/70">会话</span>
+          <span className="tabular-nums text-ui-10 text-muted-foreground/40">{sessions.length}</span>
           <button
             onClick={() => void newChat()}
             title="新对话"
@@ -100,8 +100,8 @@ export function ChatView() {
         <div className="flex shrink-0 items-center gap-2 border-b border-white/6 px-4 py-2">
           <Sparkles className="size-4 shrink-0 text-indigo-300" />
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[12.5px] font-semibold">{currentTitle}</div>
-            <div className="truncate text-[10px] text-muted-foreground/55">
+            <div className="truncate text-ui-12-5 font-semibold">{currentTitle}</div>
+            <div className="truncate text-ui-10 text-muted-foreground/55">
               {configured ? (activeProvider?.chatModel ?? "已连接") : activeProvider ? "未选择模型" : "演示模式（未配置 API）"}
             </div>
           </div>

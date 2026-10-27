@@ -124,7 +124,7 @@ export function ScheduleDialog({
             <Sparkles className="size-4 text-indigo-300" />
             AI 识别出的安排
           </DialogTitle>
-          <DialogDescription className="text-[11px]">
+          <DialogDescription className="text-ui-11">
             AI 只负责从邮件里找出面试/笔试/截止这些时间点，**写进日历必须由你确认**。
             每条都附了邮件里的原句，时间理解错了就直接改或忽略。
           </DialogDescription>
@@ -136,7 +136,7 @@ export function ScheduleDialog({
               key={s}
               onClick={() => setTab(s)}
               className={cn(
-                "rounded-lg border px-2.5 py-1 text-[11px] transition",
+                "rounded-lg border px-2.5 py-1 text-ui-11 transition",
                 tab === s
                   ? "border-indigo-400/50 bg-indigo-400/12 text-indigo-200"
                   : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
@@ -149,7 +149,7 @@ export function ScheduleDialog({
             <Button
               size="sm"
               variant="outline"
-              className="ml-auto h-7 text-[11px]"
+              className="ml-auto h-7 text-ui-11"
               disabled={!!busy}
               onClick={async () => {
                 setBusy("bulk");
@@ -177,7 +177,7 @@ export function ScheduleDialog({
         {tip && (
           <p
             className={cn(
-              "shrink-0 rounded-lg border px-2.5 py-1.5 text-[11px]",
+              "shrink-0 rounded-lg border px-2.5 py-1.5 text-ui-11",
               tip.kind === "ok"
                 ? "border-emerald-400/25 bg-emerald-400/8 text-emerald-200"
                 : "border-red-400/30 bg-red-500/10 text-red-200",
@@ -189,13 +189,13 @@ export function ScheduleDialog({
 
         <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
           {loading && (
-            <p className="flex items-center justify-center gap-1.5 py-8 text-[11px] text-muted-foreground/50">
+            <p className="flex items-center justify-center gap-1.5 py-8 text-ui-11 text-muted-foreground/50">
               <Loader2 className="size-3 animate-spin" />
               读取候选…
             </p>
           )}
           {!loading && items.length === 0 && (
-            <div className="py-10 text-center text-[11px] leading-relaxed text-muted-foreground/50">
+            <div className="py-10 text-center text-ui-11 leading-relaxed text-muted-foreground/50">
               {tab === "pending"
                 ? "还没有待确认的候选。在邮箱面板点「AI 扫描」，或在某个会话里点「AI 识别」。"
                 : "这里是空的。"}
@@ -204,7 +204,7 @@ export function ScheduleDialog({
           {items.map((c) => (
             <article key={c.id} className="rounded-xl border border-white/8 bg-white/3 p-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className={cn("shrink-0 rounded-md border px-1.5 py-0.5 text-[10px]", KIND_STYLE[c.kind])}>
+                <span className={cn("shrink-0 rounded-md border px-1.5 py-0.5 text-ui-10", KIND_STYLE[c.kind])}>
                   {KIND_LABEL[c.kind]}
                 </span>
                 {editing === c.id ? (
@@ -214,11 +214,11 @@ export function ScheduleDialog({
                     className="h-7 min-w-[200px] flex-1 text-xs"
                   />
                 ) : (
-                  <span className="min-w-0 flex-1 truncate text-[12px] font-medium">{c.title}</span>
+                  <span className="min-w-0 flex-1 truncate text-ui-12 font-medium">{c.title}</span>
                 )}
                 <span
                   className={cn(
-                    "shrink-0 rounded-md px-1.5 py-0.5 text-[10px] tabular-nums",
+                    "shrink-0 rounded-md px-1.5 py-0.5 text-ui-10 tabular-nums",
                     c.confidence >= 0.85
                       ? "bg-emerald-400/12 text-emerald-200"
                       : c.confidence >= 0.6
@@ -231,7 +231,7 @@ export function ScheduleDialog({
                 </span>
               </div>
 
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground/75">
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-ui-11 text-muted-foreground/75">
                 <span className="flex items-center gap-1">
                   <Clock className="size-3" />
                   {editing === c.id ? (
@@ -239,7 +239,7 @@ export function ScheduleDialog({
                       type="datetime-local"
                       value={draft.start}
                       onChange={(e) => setDraft((d) => ({ ...d, start: e.target.value }))}
-                      className="rounded border border-white/10 bg-white/4 px-1 py-0.5 text-[11px] outline-none"
+                      className="rounded border border-white/10 bg-white/4 px-1 py-0.5 text-ui-11 outline-none"
                     />
                   ) : (
                     fmt(c.startAt, c.allDay)
@@ -269,7 +269,7 @@ export function ScheduleDialog({
               {c.meetingUrl && (
                 <button
                   onClick={() => void openExternalLink(c.meetingUrl)}
-                  className="mt-1.5 flex max-w-full items-center gap-1 truncate text-[11px] text-indigo-300 hover:underline"
+                  className="mt-1.5 flex max-w-full items-center gap-1 truncate text-ui-11 text-indigo-300 hover:underline"
                   title={c.meetingUrl}
                 >
                   <Link2 className="size-3 shrink-0" />
@@ -279,29 +279,29 @@ export function ScheduleDialog({
               )}
 
               {c.evidence && (
-                <p className="mt-1.5 rounded-lg border border-white/6 bg-white/2 px-2 py-1 text-[11px] leading-relaxed text-muted-foreground/70">
+                <p className="mt-1.5 rounded-lg border border-white/6 bg-white/2 px-2 py-1 text-ui-11 leading-relaxed text-muted-foreground/70">
                   <span className="text-muted-foreground/45">依据原句：</span>
                   {c.evidence}
                 </p>
               )}
 
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className="min-w-0 flex-1 truncate text-[10px] text-muted-foreground/45">
+                <span className="min-w-0 flex-1 truncate text-ui-10 text-muted-foreground/45">
                   来源：{c.sourceSubject.slice(0, 40)} · {c.sourceFrom}
                 </span>
                 {c.status === "pending" && editing !== c.id && (
                   <>
-                    <Button size="sm" className="h-7 text-[11px]" disabled={!!busy} onClick={() => void doConfirm(c)}>
+                    <Button size="sm" className="h-7 text-ui-11" disabled={!!busy} onClick={() => void doConfirm(c)}>
                       {busy === c.id ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
                       确认并写入日历
                     </Button>
-                    <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => startEdit(c)}>
+                    <Button size="sm" variant="outline" className="h-7 text-ui-11" onClick={() => startEdit(c)}>
                       改时间
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 text-[11px] text-muted-foreground"
+                      className="h-7 text-ui-11 text-muted-foreground"
                       disabled={!!busy}
                       onClick={async () => {
                         await ignoreExtraction(c.id);
@@ -316,24 +316,24 @@ export function ScheduleDialog({
                 )}
                 {c.status === "pending" && editing === c.id && (
                   <>
-                    <Button size="sm" className="h-7 text-[11px]" disabled={!!busy} onClick={() => void doConfirm(c, true)}>
+                    <Button size="sm" className="h-7 text-ui-11" disabled={!!busy} onClick={() => void doConfirm(c, true)}>
                       {busy === c.id ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
                       按改后的时间写入
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setEditing(null)}>
+                    <Button size="sm" variant="ghost" className="h-7 text-ui-11" onClick={() => setEditing(null)}>
                       取消
                     </Button>
                   </>
                 )}
                 {c.status === "confirmed" && (
                   <>
-                    <span className="rounded-md border border-emerald-400/30 bg-emerald-400/10 px-1.5 py-0.5 text-[10px] text-emerald-200">
+                    <span className="rounded-md border border-emerald-400/30 bg-emerald-400/10 px-1.5 py-0.5 text-ui-10 text-emerald-200">
                       已写入日历
                     </span>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-7 text-[11px]"
+                      className="h-7 text-ui-11"
                       disabled={!!busy}
                       onClick={async () => {
                         await undoExtraction(c.id);
@@ -351,7 +351,7 @@ export function ScheduleDialog({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-7 text-[11px]"
+                    className="h-7 text-ui-11"
                     onClick={async () => {
                       await deleteExtraction(c.id);
                       await load(tab);

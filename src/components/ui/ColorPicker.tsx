@@ -59,7 +59,7 @@ export function ColorPicker({
             </button>
           ))}
         </div>
-        <label className="mt-2 flex items-center gap-2 text-[10px] text-muted-foreground">
+        <label className="mt-2 flex items-center gap-2 text-ui-10 text-muted-foreground">
           自选
           <input
             type="color"

@@ -54,8 +54,8 @@ export function ThreadView({ ws }: { ws: MailWorkspace }) {
           {/* 会话头：主题 + 操作 */}
           <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-white/6 px-4 py-2.5">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-semibold">{thread.subject}</p>
-              <p className="truncate text-[10px] text-muted-foreground/55">
+              <p className="truncate text-ui-13 font-semibold">{thread.subject}</p>
+              <p className="truncate text-ui-10 text-muted-foreground/55">
                 {thread.messageCount} 封 · {thread.participants.map((p) => p.name || p.address).join("、")}
               </p>
             </div>
@@ -118,7 +118,7 @@ export function ThreadView({ ws }: { ws: MailWorkspace }) {
                   key={m.id}
                   onClick={() => setPicked(i)}
                   className={cn(
-                    "shrink-0 rounded-lg px-2 py-1 text-[10.5px] transition",
+                    "shrink-0 rounded-lg px-2 py-1 text-ui-10-5 transition",
                     i === idx
                       ? "bg-indigo-400/15 text-indigo-100"
                       : "text-muted-foreground/70 hover:bg-white/6 hover:text-foreground",
@@ -134,7 +134,7 @@ export function ThreadView({ ws }: { ws: MailWorkspace }) {
           {/* 正文 */}
           <div className="min-h-0 flex-1 overflow-y-auto">
             {loadingMsgs && (
-              <p className="flex items-center justify-center gap-1.5 py-10 text-[11px] text-muted-foreground/50">
+              <p className="flex items-center justify-center gap-1.5 py-10 text-ui-11 text-muted-foreground/50">
                 <Loader2 className="size-3 animate-spin" />
                 读取会话…
               </p>
@@ -142,7 +142,7 @@ export function ThreadView({ ws }: { ws: MailWorkspace }) {
 
             {!loadingMsgs && messages.length === 0 && (
               <div className="flex flex-col items-center gap-2 py-12 text-center">
-                <p className="text-[11px] leading-relaxed text-muted-foreground/55">
+                <p className="text-ui-11 leading-relaxed text-muted-foreground/55">
                   这个会话没有取到邮件
                   <br />
                   <span className="text-muted-foreground/40">
@@ -152,7 +152,7 @@ export function ThreadView({ ws }: { ws: MailWorkspace }) {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-7 text-[11px]"
+                  className="h-7 text-ui-11"
                   onClick={() => void recoverThread()}
                   disabled={busy === "organize"}
                 >
