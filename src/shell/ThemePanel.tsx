@@ -6,6 +6,7 @@ import {
   ACCENTS,
   DARK_BACKGROUNDS,
   LIGHT_BACKGROUNDS,
+  RADII,
   CUSTOM_ACCENT_ID,
   CUSTOM_BACKGROUND_ID,
   accentPreview,
@@ -105,7 +106,7 @@ function CustomColor({
 }
 
 /**
- * 顶栏「主题与风格」入口：主题色（预设 + 自定义）/ 背景色系（深色系 / 浅色系 + 自定义）/ 字号。
+ * 顶栏「主题与风格」入口：主题色 / 背景色系 / 圆角 / 字号。
  * 点一下立即生效并持久化；同一份配置智能体也能改（modules/theme/tools.ts）。
  */
 export function ThemeButton() {
@@ -121,6 +122,7 @@ export function ThemeButton() {
   const setAccentHex = useThemeStore((s) => s.setAccentHex);
   const setBackground = useThemeStore((s) => s.setBackground);
   const setBackgroundHex = useThemeStore((s) => s.setBackgroundHex);
+  const setRadius = useThemeStore((s) => s.setRadius);
   const setFontSize = useThemeStore((s) => s.setFontSize);
   const reset = useThemeStore((s) => s.reset);
 
@@ -133,7 +135,7 @@ export function ThemeButton() {
     <Popover open={panelOpen} onOpenChange={setPanelOpen}>
       <PopoverTrigger asChild>
         <button
-          title="主题与风格（深浅色系 / 自定义颜色 / 字号大小）"
+          title="主题与风格（深浅色系 / 自定义颜色 / 圆角 / 字号大小）"
           className={cn(
             "flex size-7 items-center justify-center rounded-lg outline-none transition",
             panelOpen
@@ -224,6 +226,26 @@ export function ThemeButton() {
           />
         </div>
 
+        {/* 圆角 */}
+        <div id="radius-label" className="mb-1 text-ui-10 text-muted-foreground/60">圆角</div>
+        <div role="group" aria-labelledby="radius-label" className="mb-3 flex gap-1.5">
+          {RADII.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => setRadius(r.id)}
+              aria-pressed={radius === r.id}
+              className={cn(
+                "flex-1 rounded-lg border px-2 py-1 text-ui-11 transition",
+                radius === r.id
+                  ? "border-indigo-400/50 bg-indigo-400/10 text-indigo-200"
+                  : "border-white/8 bg-white/3 text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {r.name}
+            </button>
+          ))}
+        </div>
+
         {/* 字号大小 */}
         <div id="font-size-label" className="mb-1 text-ui-10 text-muted-foreground/60">字号大小</div>
         <div role="group" aria-labelledby="font-size-label" className="flex gap-1.5">
@@ -247,7 +269,7 @@ export function ThemeButton() {
 
         <p className="mt-2.5 text-ui-10 leading-relaxed text-muted-foreground/45">
           主题色会同时改变按钮、选中态、标签与背景环境光；浅色系会自动把面板与描边切换成深色淡墨。
-          字号大小应用于整个应用。
+          圆角与字号大小应用于整个应用。
           设置立即生效并自动保存，也可以直接对 AI 说「把主题换成青绿色浅色系」。
         </p>
       </PopoverContent>

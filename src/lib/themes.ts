@@ -461,5 +461,5 @@ export function describeTheme(cfg: ThemeConfig): string {
       ? `自定义 ${normalizeHex(cfg.backgroundHex) ?? cfg.backgroundHex}`
       : (findBackground(cfg.background)?.name ?? cfg.background);
   const { label } = resolveAccent(cfg);
-  return `基调 ${mode === "light" ? "浅色" : "深色"} · 主题色 ${label} · 背景 ${bg} · 字号 ${FONT_SIZES.find((s) => s.id === cfg.fontSize)!.name}`;
+  return `基调 ${mode === "light" ? "浅色" : "深色"} · 主题色 ${label} · 背景 ${bg} · 圆角 ${findRadius(cfg.radius).name} · 字号 ${FONT_SIZES.find((s) => s.id === cfg.fontSize)!.name}`;
 }
